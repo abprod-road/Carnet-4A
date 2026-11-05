@@ -143,6 +143,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .mapctl input[type=range]{flex:1 1 130px;margin:0;padding:0;background:none;border:0;min-width:110px}
 .mapctl .pos{flex:1 1 100%;font-size:13px;color:var(--gris);font-variant-numeric:tabular-nums}
 .mapctl .pos b{color:var(--encre);font-weight:600}
+.sdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;
+ vertical-align:middle;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.seabar{display:flex;flex-wrap:wrap;gap:12px;margin:10px 0 2px;font-size:12px;color:var(--gris)}
+.seabar span{display:inline-flex;align-items:center;gap:5px}
+.seabar i{width:11px;height:11px;border-radius:50%;display:inline-block}
 .mons{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;margin-top:8px}
 .mons span{font-size:9.5px;text-align:center;padding:3px 0;border-radius:3px;background:var(--papier);
  color:var(--gris);border:1px solid var(--trait)}
@@ -429,6 +434,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* ============ modèle ============ */
 const TAGS=[['sport','Événement sportif'],['concert','Concert'],['vue','Vue incroyable'],
  ['activite','Activité sportive'],['event','Événement'],['faire','À faire absolument'],['voir','À voir absolument']];
+const SEASONS=['printemps','ete','automne','hiver'];
+const SEASON_LABEL={printemps:'Printemps',ete:'Été',automne:'Automne',hiver:'Hiver'};
+const SEASON_COL={printemps:'#2e9e5b',ete:'#e23b3b',automne:'#e8862c',hiver:'#2f7fd0'};
+function seasonOf(s){
+  if(!s||!s.d)return 'printemps';
+  const m=+s.d.slice(5,7);
+  if(m>=3&&m<=5)return 'printemps';
+  if(m>=6&&m<=8)return 'ete';
+  if(m>=9&&m<=11)return 'automne';
+  return 'hiver';
+}
 const MONS=['J','F','M','A','M','J','J','A','S','O','N','D'];
 const MONSL=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const POSTES=['Carburant','Ferries & péages','Camping','Courses','Restaurant','Activités','Camion','Divers'];
@@ -632,11 +648,15 @@ function drawLeaflet(P){
     lgrp=window.L.layerGroup().addTo(lmap);}
   lgrp.clearLayers();
   const ll=P.map(p=>[+p.la,+p.lo]);
-  buildPath().segs.forEach(s=>window.L.polyline(s.pts,
-    {color:s.src==='gps'?'#2C4C86':(s.road?'#E8A33D':'#B9A277'),
-     weight:s.road?4:2.5,dashArray:s.road?null:'7 5'}).addTo(lgrp));
+  buildPath().segs.forEach(s=>{
+    const col=SEASON_COL[seasonOf(s.to)];
+    window.L.polyline(s.pts,{color:'#fff',weight:s.road?6:4,opacity:.72}).addTo(lgrp);
+    window.L.polyline(s.pts,{color:col,weight:s.road?4:2.5,
+      dashArray:s.road?null:'7 5'}).addTo(lgrp);
+  });
   P.forEach((p,i)=>window.L.marker([+p.la,+p.lo],{icon:window.L.divIcon({className:'',
-    html:`<div class="mk${p.fr?' fr':''}">${i+1}</div>`,iconSize:[22,22],iconAnchor:[11,11]})})
+    html:`<div class="mk${p.fr?' fr':''}" style="background:${SEASON_COL[seasonOf(p)]}">${i+1}</div>`,
+    iconSize:[22,22],iconAnchor:[11,11]})})
     .addTo(lgrp).bindPopup(`<b>${esc(p.n)}</b>${p.c?'<br>'+esc(p.c):''}${p.d?'<br>'+df(p.d):''}`));
   lmk=window.L.marker(ll[0],{icon:window.L.divIcon({className:'',html:'<div class="tk">🚚</div>',
     iconSize:[26,26],iconAnchor:[13,13]}),zIndexOffset:1000}).addTo(lgrp);
@@ -736,7 +756,11 @@ function drawLegend(P){
     : (t.road>0
       ? `<b>${nf(t.road)} km de route</b> sur ${t.n-t.miss}/${t.n} segments · ${nf(t.fly)} km encore à vol d'oiseau`
       : `${nf(t.fly)} km à vol d'oiseau <span class="ko">(estimation basse)</span>`);
-  $('map-legend').innerHTML=`<p class="note">${P.length} étape${P.length>1?'s':''} ·
+  const cs={printemps:0,ete:0,automne:0,hiver:0};
+  P.forEach(p=>cs[seasonOf(p)]++);
+  const seabar=SEASONS.filter(k=>cs[k]).map(k=>
+    `<span><i style="background:${SEASON_COL[k]}"></i>${SEASON_LABEL[k]} · ${cs[k]}</span>`).join('');
+  $('map-legend').innerHTML=`<div class="seabar">${seabar}</div><p class="note">${P.length} étape${P.length>1?'s':''} ·
     de ${nf(Math.min(...P.map(p=>+p.la)))}°N à ${nf(Math.max(...P.map(p=>+p.la)))}°N · ${dist} ·
     ${t.gps?`<b>${t.gps}/${t.n} segment(s) validé(s) au GPS</b> · `:''}<span style="color:#2C4C86">■</span> ville francophone${LF===true?'':' · fond de carte hors ligne'}</p>`;
 }
@@ -826,7 +850,7 @@ function drawStops(){
       <div class="st-top">
         <button class="st-h" data-so="${s.id}" aria-expanded="${open}">
           <span class="ti">
-            <span class="t" style="display:block">${i+1}. ${esc(s.n)}${s.fr?'<span class="badge b-fr">francophone</span>':''}</span>
+            <span class="t" style="display:block"><span class="sdot" style="background:${SEASON_COL[seasonOf(s)]}"></span>${i+1}. ${esc(s.n)}${s.fr?'<span class="badge b-fr">francophone</span>':''}</span>
             <span class="m" style="display:block">${[esc(s.c),s.d?df(s.d):'',s.x?s.x+' nuit'+(s.x>1?'s':''):''].filter(Boolean).join(' · ')||'—'}</span>
             ${cnt?`<span class="cnt">${cnt}</span>`:''}
             ${s.m&&s.m.length?`<span class="mons" style="margin-top:7px">${MONS.map((mm,j)=>`<span class="${s.m.includes(j)?'on':''}">${mm}</span>`).join('')}</span>`:''}
