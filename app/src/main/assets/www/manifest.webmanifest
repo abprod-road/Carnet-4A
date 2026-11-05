@@ -1,0 +1,26 @@
+{
+  "name": "Carnet de bord — Les 4A",
+  "short_name": "Carnet",
+  "description": "Le carnet de bord du voyage : étapes, activités, événements, budget et camion.",
+  "lang": "fr",
+  "dir": "ltr",
+  "id": "/carnet-les4a/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0E2340",
+  "theme_color": "#0E2340",
+  "categories": ["travel", "navigation", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Étapes", "url": "./index.html#stops", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Carte", "url": "./index.html#map", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Budget", "url": "./index.html#budget", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}

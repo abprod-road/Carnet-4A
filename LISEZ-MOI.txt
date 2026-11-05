@@ -1,0 +1,92 @@
+CARNET DE BORD — projet Android
+Produit un APK installable et un AAB pour le Play Store.
+
+L'application embarque toutes ses pages : aucun hébergement, aucun serveur.
+Elle fonctionne sans réseau. Le réseau ne sert qu'au fond de carte, aux taux
+de change et au calcul des itinéraires.
+
+
+=== A. OBTENIR L'APK SANS RIEN INSTALLER (recommandé) ===
+
+1. Crée un dépôt sur github.com (privé convient).
+2. Envoie-y le contenu de ce dossier (bouton « uploading an existing file »
+   si tu ne veux pas utiliser Git).
+3. Onglet « Actions » du dépôt : la construction démarre seule.
+   Compte 5 à 10 minutes la première fois.
+4. Clique sur la ligne de build, puis télécharge l'artefact « carnet-apk ».
+5. Transfère l'APK sur le téléphone et ouvre-le.
+   Android demandera d'autoriser l'installation depuis cette source : accepte.
+
+L'APK produit est en mode « debug ». Il s'installe parfaitement, mais ne peut
+pas être publié sur le Play Store. Pour cela, voir la section C.
+
+
+=== B. CONSTRUIRE DEPUIS ANDROID STUDIO ===
+
+1. Android Studio → Open → sélectionne ce dossier.
+2. Laisse-le synchroniser (il télécharge Gradle et le SDK au besoin).
+3. Build → Build Bundle(s) / APK(s) → Build APK(s).
+Le wrapper Gradle n'est pas fourni : Android Studio le génère au premier
+lancement, et la construction GitHub utilise sa propre version de Gradle.
+
+
+=== C. PUBLIER SUR LE PLAY STORE ===
+
+Il faut un AAB signé avec ta propre clé. La clé se crée une seule fois, et
+se conserve précieusement : sans elle, impossible de publier une mise à jour.
+
+1. Crée la clé (depuis un ordinateur avec Java) :
+   keytool -genkeypair -v -keystore upload.jks -keyalg RSA -keysize 2048 \
+     -validity 10000 -alias carnet
+
+2. Convertis-la en texte :
+   base64 -w0 upload.jks > upload.txt     (macOS : base64 -i upload.jks -o upload.txt)
+
+3. Dans le dépôt GitHub : Settings → Secrets and variables → Actions →
+   New repository secret. Crée ces quatre secrets :
+     KEYSTORE_B64        le contenu de upload.txt
+     KEYSTORE_PASSWORD   le mot de passe du keystore
+     KEY_ALIAS           carnet
+     KEY_PASSWORD        le mot de passe de la clé
+
+4. Relance la construction (Actions → Run workflow).
+   L'artefact « carnet-aab » apparaît : c'est le fichier à déposer sur la
+   Google Play Console.
+
+Compte Google Play Developer : 25 $ une fois, puis une fiche à remplir
+(description, captures, politique de confidentialité). Comme l'app ne
+collecte aucune donnée et n'a pas de compte utilisateur, la déclaration de
+sécurité des données est simple.
+
+
+=== D. METTRE À JOUR L'APPLICATION ===
+
+Je te renvoie un dossier à jour, tu remplaces les fichiers dans le dépôt.
+Pense à incrémenter dans app/build.gradle :
+    versionCode 1   →  2, 3, 4…      (obligatoire pour le Play Store)
+    versionName "3.3.0"              (ce que l'utilisateur voit)
+Les données du téléphone sont conservées lors d'une mise à jour.
+
+
+=== CE QU'IL Y A DANS LE DOSSIER ===
+
+app/src/main/assets/www/     l'application elle-même (HTML, icônes)
+app/src/main/java/...        la coque Android (une seule classe)
+app/src/main/res/            icônes de lanceur, thème, couleurs
+.github/workflows/           la recette de construction automatique
+app/build.gradle             version, signature, dépendances
+
+
+=== DÉTAILS TECHNIQUES ===
+
+Les pages sont servies sur https://appassets.androidplatform.net/ et non en
+file:// : l'origine est stable et sécurisée, ce qui rend le stockage local
+fiable et préservé d'une mise à jour à l'autre.
+
+minSdk 24 (Android 7.0) · targetSdk 34 · aucune permission en dehors d'Internet.
+
+L'impression PDF n'existe pas dans l'app Android. Pour imprimer, ouvre le
+carnet dans Chrome. L'export de sauvegarde, lui, fonctionne partout.
+
+Les données vivent sur ce téléphone, nulle part ailleurs. Exporte
+régulièrement depuis l'onglet Sauvegarde.

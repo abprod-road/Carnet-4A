@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carnet de bord</title>
+<meta name="theme-color" content="#0E2340">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carnet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="description" content="Le carnet de bord du voyage : étapes, activités, événements, budget et camion.">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{--nuit:#0E2340;--encre:#16304F;--papier:#F6F7F4;--blanc:#fff;--soleil:#E8A33D;
+      --glace:#4C8FA8;--gris:#79838F;--trait:#DFE3E2;--rouge:#B3402F;--vert:#2F7D5B}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--papier);color:var(--encre);font-size:16px;line-height:1.45;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px 110px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:-.01em;margin:0}
+header{background:var(--nuit);color:#fff;margin:0 -16px;padding:20px 16px 15px;
+ padding-top:calc(16px + env(safe-area-inset-top));position:relative;overflow:hidden}
+header::after{content:"";position:absolute;right:-40px;top:-40px;width:130px;height:130px;
+ border-radius:50%;background:var(--soleil);opacity:.15}
+header h1{font-size:23px;position:relative}
+header p{margin:4px 0 0;font-size:13px;color:#A9BBD0;position:relative}
+nav{position:sticky;top:0;z-index:20;background:var(--papier);margin:0 -16px 16px;
+ padding:8px 10px;border-bottom:1px solid var(--trait);overflow-x:auto;white-space:nowrap}
+nav button{font:inherit;font-size:13.5px;font-weight:600;border:1px solid var(--trait);
+ background:var(--blanc);color:var(--gris);border-radius:999px;padding:7px 13px;margin-right:6px;cursor:pointer}
+nav button.on{background:var(--nuit);border-color:var(--nuit);color:#fff}
+section{display:none}section.on{display:block}
+.head h2{font-size:21px}
+.hint{color:var(--gris);font-size:13.5px;margin:2px 0 15px}
+.card{background:var(--blanc);border:1px solid var(--trait);border-radius:7px;padding:13px 14px;margin-bottom:10px}
+.card .t{font-weight:600;font-size:15.5px}
+.card .m{font-size:13px;color:var(--gris);margin-top:2px}
+.card .n{font-size:14px;margin-top:7px;white-space:pre-wrap}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.tools{display:flex;gap:4px;flex:0 0 auto}
+.tools button{font:inherit;font-size:14px;line-height:1;background:none;border:1px solid var(--trait);
+ border-radius:5px;padding:5px 8px;cursor:pointer;color:var(--gris)}
+.empty{border:1px dashed var(--trait);border-radius:7px;padding:24px 18px;text-align:center;color:var(--gris);font-size:14px}
+form.add{background:var(--blanc);border:1px solid var(--trait);border-radius:7px;padding:14px;margin-bottom:16px}
+.f{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+.f>label{flex:1 1 130px;font-size:12px;color:var(--gris);font-weight:600}
+.f>label.w{flex:1 1 100%}
+input,select,textarea{font:inherit;font-size:15px;width:100%;padding:9px 10px;margin-top:3px;
+ border:1px solid var(--trait);border-radius:5px;background:var(--papier);color:var(--encre)}
+textarea{min-height:60px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--soleil);outline-offset:1px;background:#fff}
+input[type=checkbox]{width:auto;margin:0 7px 0 0;vertical-align:-1px}
+button.go{font:inherit;font-size:15px;font-weight:600;background:var(--nuit);color:#fff;border:1px solid var(--nuit);
+ border-radius:5px;padding:11px 18px;cursor:pointer}
+button.go.ghost{background:none;color:var(--nuit)}
+button.go.danger{background:none;color:var(--rouge);border-color:var(--rouge)}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:2px 7px;margin:0 0 0 5px;vertical-align:1px}
+.b-far{background:#E9EEF3;color:#5A6B7C}.b-soon{background:#FBEDD4;color:#8A6516}
+.b-now{background:#F6DCD6;color:#8E3324}.b-done{background:#DDEDE4;color:#256048}
+.b-fr{background:#E2E9F5;color:#2C4C86}.b-ko{background:#F6DCD6;color:#8E3324}
+.b-st{background:#E4EDF2;color:#2A5566}
+.badge.b-st,.badge.b-ko{margin:0 5px 0 0}
+.seg{display:flex;gap:6px;margin-bottom:14px}
+.seg span{flex:1 1 0;text-align:center;font-size:13.5px;font-weight:600;border:1px solid var(--trait);
+ background:var(--blanc);color:var(--gris);border-radius:6px;padding:8px 6px;cursor:pointer}
+.seg span.on{background:var(--nuit);border-color:var(--nuit);color:#fff}
+tr.tot-row td{border-top:2px solid var(--encre);border-bottom:0;font-weight:700;padding-top:10px}
+.rep{background:var(--blanc);border:1px solid var(--trait);border-radius:7px;padding:13px 14px;margin:12px 0}
+.rep ul{margin:6px 0 0;padding-left:18px}
+.rep li{font-size:14px;margin:3px 0}
+.rep li.w{color:#8A6516}
+.prop{background:var(--blanc);border:1px solid var(--trait);border-left:3px solid var(--soleil);
+ border-radius:7px;padding:12px 13px;margin-bottom:9px}
+.prop .acts{display:flex;gap:8px;margin-top:9px}
+.prop .acts button{flex:1 1 0;font:inherit;font-size:14px;font-weight:600;border-radius:5px;padding:9px 6px;cursor:pointer;
+ border:1px solid var(--nuit);background:var(--nuit);color:#fff}
+.prop .acts button.no{background:none;color:var(--gris);border-color:var(--trait)}
+#upd{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--nuit);color:#fff;
+ padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:none;
+ align-items:center;gap:12px;box-shadow:0 -2px 12px rgba(0,0,0,.22)}
+#upd.on{display:flex}
+#upd span{flex:1 1 auto;font-size:14px}
+#upd button{flex:0 0 auto;font:inherit;font-size:14px;font-weight:600;background:var(--soleil);
+ color:#3C2A08;border:0;border-radius:5px;padding:9px 14px;cursor:pointer}
+td.pct{color:var(--gris);font-size:13px}
+.tot{display:flex;gap:20px;flex-wrap:wrap;background:var(--nuit);color:#fff;border-radius:7px;padding:14px 16px;margin-bottom:15px}
+.tot div{font-size:12px;color:#A9BBD0}
+.tot b{display:block;font-size:19px;color:#fff;font-weight:600;margin-top:1px}
+.tot b.pos{color:#9BD9B8}.tot b.neg{color:#F0A99B}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{font-size:13px;border:1px solid var(--trait);background:var(--blanc);border-radius:999px;
+ padding:5px 11px;cursor:pointer;user-select:none}
+.chip.on{background:var(--nuit);color:#fff;border-color:var(--nuit)}
+.chip .x{color:var(--gris);margin-left:6px;font-weight:700}
+.hid{display:none}
+.chip.add-n{background:var(--blanc);border-style:dashed;font-weight:600;color:var(--nuit)}
+.chip.add-n.on{background:var(--nuit);color:#fff;border-style:solid}
+.stop{padding:0;overflow:hidden}
+.st-top{display:flex;align-items:flex-start;gap:8px;padding:11px 12px}
+.st-h{flex:1 1 auto;display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;
+ font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.st-h .ti{flex:1 1 auto;display:block}
+.st-h .chev{flex:0 0 auto;color:var(--gris);font-size:12px;padding-top:4px;transition:transform .18s}
+.stop.open .st-h .chev{transform:rotate(180deg)}
+.st-h:focus-visible{outline:2px solid var(--soleil);outline-offset:3px;border-radius:4px}
+.cnt{display:block;font-size:12px;color:var(--glace);margin-top:4px;font-weight:600}
+.st-b{display:none;padding:11px 12px 13px;border-top:1px solid var(--trait)}
+.stop.open .st-b{display:block}
+.st-b h4{margin:13px 0 5px;font:inherit;font-size:12px;font-weight:700;color:var(--gris);
+ text-transform:uppercase;letter-spacing:.04em}
+.st-b h4:first-child{margin-top:0}
+.lnk{font-size:14px;padding:4px 0 4px 11px;border-left:2px solid var(--trait);margin:4px 0}
+.lnk .s{display:block;font-size:12.5px;color:var(--gris)}
+.lnk.go-ev{border-left-color:var(--soleil)}
+.hop{font-size:13px;color:var(--gris);margin-top:11px;padding-top:9px;border-top:1px dashed var(--trait)}
+.hop b{color:var(--encre);font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{font-size:11.5px;background:var(--papier);border:1px solid var(--trait);border-radius:4px;padding:2px 7px;color:#4A5D70}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gris);
+ border-bottom:1px solid var(--trait);padding:7px 4px}
+td{padding:9px 4px;border-bottom:1px solid var(--trait)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--gris);margin-top:12px}
+.ok{color:var(--vert);font-weight:600}.ko{color:var(--rouge);font-weight:600}
+#map{height:340px;border:1px solid var(--trait);border-radius:7px;background:#DDE6EA;margin-bottom:12px}
+#map svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.leaflet-container{height:100%;border-radius:6px}
+.mk{background:var(--nuit);color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;
+ text-align:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.mk.fr{background:#2C4C86}
+.tk{font-size:23px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.mapctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--blanc);
+ border:1px solid var(--trait);border-radius:7px;padding:10px 12px;margin-bottom:10px}
+.mapctl button{font:inherit;font-size:16px;line-height:1;background:var(--nuit);color:#fff;border:1px solid var(--nuit);
+ border-radius:5px;padding:8px 13px;cursor:pointer}
+.mapctl button.sec{background:none;color:var(--nuit)}
+.mapctl button[disabled]{opacity:.4;cursor:default}
+.mapctl select{width:auto;margin:0;padding:7px 8px;font-size:13.5px}
+.mapctl input[type=range]{flex:1 1 130px;margin:0;padding:0;background:none;border:0;min-width:110px}
+.mapctl .pos{flex:1 1 100%;font-size:13px;color:var(--gris);font-variant-numeric:tabular-nums}
+.mapctl .pos b{color:var(--encre);font-weight:600}
+.mons{display:grid;grid-template-columns:repeat(12,1fr);gap:2px;margin-top:8px}
+.mons span{font-size:9.5px;text-align:center;padding:3px 0;border-radius:3px;background:var(--papier);
+ color:var(--gris);border:1px solid var(--trait)}
+.mons span.on{background:var(--soleil);border-color:var(--soleil);color:#3C2A08;font-weight:700}
+.mons span.now{outline:2px solid var(--nuit);outline-offset:-2px}
+.warn{background:#FBEDD4;border:1px solid #E8CFA0;border-radius:6px;padding:10px 12px;font-size:13.5px;
+ color:#6E5211;margin-bottom:10px}
+.warn b{color:#4A3608}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1 id="trip">Carnet de bord</h1><p id="sub"></p></header>
+<nav id="nav"></nav>
+
+<!-- CARTE -->
+<section id="s-map">
+  <div class="head"><h2>Carte</h2></div>
+  <p class="hint">Les étapes qui ont des coordonnées apparaissent dans l'ordre. Glisse pour déplacer, molette ou pincement pour zoomer.</p>
+  <div id="map"></div>
+  <div class="mapctl" id="map-ctl"></div>
+  <div id="map-legend"></div>
+  <form class="add" id="f-ors" style="margin-top:12px">
+    <div class="f"><label class="w">Clé OpenRouteService (gratuite, openrouteservice.org)
+      <input id="ors-key" type="password" placeholder="collée une seule fois, stockée sur l'appareil"></label></div>
+    <div class="f" style="gap:9px">
+      <button class="go" type="submit" style="flex:1 1 auto">Calculer les distances routières</button>
+      <button class="go ghost" type="button" id="ors-clr" style="flex:0 0 auto">Vider le cache</button>
+    </div>
+    <div class="note" id="ors-st"></div>
+  </form>
+  <h3 style="font-size:17px;margin:22px 0 4px">Distances validées au GPS</h3>
+  <p class="note" style="margin:0 0 8px">Trajet lancé dans Eurowag Navi (ou ton GPS poids lourd) : recopie ici les kilomètres et la durée. Ces valeurs priment sur tout calcul automatique.</p>
+  <table><thead><tr><th>Segment</th><th class="num">km</th><th class="num">min</th></tr></thead><tbody id="l-segs"></tbody></table>
+  <p class="note" id="segs-st"></p>
+</section>
+
+<!-- ÉTAPES -->
+<section id="s-stops">
+  <div class="head"><h2>Étapes</h2></div>
+  <p class="hint">Touche le nom d'une étape pour voir ce qui y est prévu.</p>
+  <div class="chips" id="st-all"></div>
+  <div id="l-stops"></div>
+  <form class="add hid" id="f-stop">
+    <div class="f"><label class="w">Nom<input id="st-n" required placeholder="Nordkapp"></label></div>
+    <div class="f">
+      <label>Pays / région<input id="st-c" placeholder="Norvège"></label>
+      <label>Arrivée<input type="date" id="st-d"></label>
+      <label>Nuits<input type="number" id="st-x" min="0" step="1"></label>
+    </div>
+    <div class="f">
+      <label>Latitude<input type="number" id="st-la" step="0.0001" placeholder="71.1709"></label>
+      <label>Longitude<input type="number" id="st-lo" step="0.0001" placeholder="25.7833"></label>
+    </div>
+    <div class="f"><label class="w">Mois favorables<div class="mons" id="st-mons"></div></label></div>
+    <div class="f"><label class="w">Centres d'intérêt<div class="chips" id="st-tags"></div></label></div>
+    <div class="f">
+      <label>Long. max (m)<input type="number" id="st-ml" step="0.1" placeholder="12.4"></label>
+      <label>Haut. max (m)<input type="number" id="st-mh" step="0.05" placeholder="4.2"></label>
+      <label>Poids max (t)<input type="number" id="st-mp" step="0.5" placeholder="19"></label>
+    </div>
+    <div class="f"><label class="w"><input type="checkbox" id="st-fr">Ville francophone</label></div>
+    <div class="f"><label class="w">Notes<textarea id="st-o"></textarea></label></div>
+    <button class="go" type="submit">Ajouter l'étape</button>
+  </form>
+
+</section>
+
+<!-- ACTIVITÉS -->
+<section id="s-acts">
+  <div class="head"><h2>Activités</h2></div>
+  <p class="hint">Ce qu'on fait sur la route. Marque celles qui sont pour les filles.</p>
+  <form class="add" id="f-act">
+    <div class="f"><label class="w">Activité<input id="ac-n" required placeholder="Marche sur glacier"></label></div>
+    <div class="f">
+      <label>Étape<select id="ac-s"></select></label>
+      <label>Âge mini<input type="number" id="ac-a" step="1" placeholder="8"></label>
+      <label>Prix indicatif<input type="number" id="ac-p" step="1"></label>
+    </div>
+    <div class="f"><label class="w">Centres d'intérêt<div class="chips" id="ac-tags"></div></label></div>
+    <div class="f"><label class="w"><input type="checkbox" id="ac-k" checked>Pour les filles</label></div>
+    <div class="f"><label class="w">Notes<textarea id="ac-o"></textarea></label></div>
+    <button class="go" type="submit">Ajouter</button>
+  </form>
+  <div class="chips" id="ac-filter"></div>
+  <div id="l-acts"></div>
+</section>
+
+<!-- ÉVÉNEMENTS -->
+<section id="s-events">
+  <div class="head"><h2>Événements</h2></div>
+  <p class="hint">Ce qui a une date fixe et qu'on ne peut pas rater. Le carnet te dit si ton itinéraire tombe dessus.</p>
+  <form class="add" id="f-ev">
+    <div class="f"><label class="w">Événement<input id="ev-n" required placeholder="Soleil de minuit au Cap Nord"></label></div>
+    <div class="f">
+      <label>Étape<select id="ev-s"></select></label>
+      <label>Lieu<input id="ev-p" placeholder="Nordkapp"></label>
+    </div>
+    <div class="f">
+      <label>Début<input type="date" id="ev-d"></label>
+      <label>Fin<input type="date" id="ev-e"></label>
+    </div>
+    <div class="f"><label class="w">Centres d'intérêt<div class="chips" id="ev-tags"></div></label></div>
+    <div class="f"><label class="w"><input type="checkbox" id="ev-i">À ne pas manquer</label></div>
+    <button class="go" type="submit">Ajouter</button>
+  </form>
+  <div id="l-events"></div>
+</section>
+
+<!-- RÉSERVATIONS -->
+<section id="s-resas">
+  <div class="head"><h2>Réservations</h2></div>
+  <p class="hint">Badge J− automatique. Coche quand c'est réservé.</p>
+  <form class="add" id="f-resa">
+    <div class="f"><label class="w">À réserver<input id="rs-n" required></label></div>
+    <div class="f"><label>Date concernée<input type="date" id="rs-d"></label>
+      <label>Étape<select id="rs-s"></select></label></div>
+    <button class="go" type="submit">Ajouter</button>
+  </form>
+  <div id="l-resas"></div>
+</section>
+
+<!-- BUDGET -->
+<section id="s-budget">
+  <div class="head"><h2>Budget</h2></div>
+  <p class="hint">Multidevises, taux saisis à la main, tout converti en devise de référence.</p>
+  <div class="tot" id="t-budget"></div>
+  <div class="seg" id="bu-seg"></div>
+  <form class="add" id="f-dep">
+    <div class="f"><label class="w">Dépense<input id="dp-n" required></label></div>
+    <div class="f">
+      <label>Montant<input type="number" id="dp-m" step="0.01" required></label>
+      <label>Devise<select id="dp-c"></select></label>
+      <label>Poste<select id="dp-p"></select></label>
+      <label>Étape<select id="dp-s"></select></label>
+      <label>Date<input type="date" id="dp-d"></label>
+    </div>
+    <button class="go" type="submit">Enregistrer</button>
+  </form>
+  <h3 style="font-size:17px;margin:20px 0 8px" id="bu-h"></h3>
+  <p class="note" id="bu-hint" style="margin:0 0 8px"></p>
+  <table><thead id="bu-th"></thead><tbody id="l-prev"></tbody></table>
+  <div id="bu-poste"></div>
+  <h3 style="font-size:17px;margin:22px 0 8px">Devises</h3>
+  <table><thead><tr><th>Devise</th><th class="num">1 unité =</th><th></th></tr></thead><tbody id="l-rates"></tbody></table>
+  <p class="note" id="bu-rw" style="margin:6px 0 0"></p>
+  <form class="add" id="f-rate" style="margin-top:10px">
+    <div class="f"><label>Code<input id="rt-c" maxlength="3" style="text-transform:uppercase"></label>
+      <label>Vaut (en réf.)<input type="number" id="rt-v" step="0.0001"></label></div>
+    <button class="go ghost" type="submit">Ajouter la devise</button>
+  </form>
+  <h3 style="font-size:17px;margin:22px 0 8px">Dépenses</h3>
+  <div id="l-deps"></div>
+</section>
+
+<!-- JOURNAL -->
+<section id="s-journal">
+  <div class="head"><h2>Journal</h2></div>
+  <p class="hint">Imprimable en PDF depuis l'onglet Sauvegarde.</p>
+  <form class="add" id="f-jrn">
+    <div class="f"><label>Date<input type="date" id="jr-d"></label>
+      <label>Étape<select id="jr-s"></select></label></div>
+    <div class="f"><label class="w">Texte<textarea id="jr-t" required></textarea></label></div>
+    <button class="go" type="submit">Ajouter</button>
+  </form>
+  <div id="l-jrn"></div>
+</section>
+
+<!-- CAMION -->
+<section id="s-truck">
+  <div class="head"><h2>Camion</h2></div>
+  <p class="hint">Gabarit, pleins et entretien. La conso se calcule seule entre deux pleins complets.</p>
+  <form class="add" id="f-veh">
+    <div class="f">
+      <label>Longueur (m)<input type="number" id="vh-l" step="0.01" placeholder="12"></label>
+      <label>Hauteur (m)<input type="number" id="vh-h" step="0.01" placeholder="4.15"></label>
+      <label>Largeur (m)<input type="number" id="vh-w" step="0.01" placeholder="2.55"></label>
+      <label>Poids (t)<input type="number" id="vh-p" step="0.1" placeholder="18"></label>
+    </div>
+    <button class="go ghost" type="submit">Enregistrer le gabarit</button>
+  </form>
+  <div class="tot" id="t-truck"></div>
+  <h3 style="font-size:17px;margin:6px 0 8px">Plein</h3>
+  <form class="add" id="f-fuel">
+    <div class="f">
+      <label>Date<input type="date" id="fu-d"></label>
+      <label>Compteur (km)<input type="number" id="fu-k" required step="1"></label>
+      <label>Litres<input type="number" id="fu-l" required step="0.01"></label>
+      <label>Prix total<input type="number" id="fu-p" step="0.01"></label>
+    </div>
+    <div class="f"><label class="w"><input type="checkbox" id="fu-f" checked>Plein complet</label></div>
+    <button class="go" type="submit">Enregistrer</button>
+  </form>
+  <div id="l-fuel"></div>
+  <h3 style="font-size:17px;margin:24px 0 8px">Entretien</h3>
+  <form class="add" id="f-mnt">
+    <div class="f"><label class="w">Intervention<input id="mn-n" required></label></div>
+    <div class="f"><label>Date<input type="date" id="mn-d"></label>
+      <label>Compteur<input type="number" id="mn-k" step="1"></label>
+      <label>Prochaine à (km)<input type="number" id="mn-x" step="1"></label></div>
+    <button class="go" type="submit">Enregistrer</button>
+  </form>
+  <div id="l-mnt"></div>
+</section>
+
+<!-- RÉGIONS -->
+<section id="s-flags">
+  <div class="head"><h2>Régions</h2></div>
+  <p class="hint">Ta liste à toi. Coche au passage.</p>
+  <form class="add" id="f-flag">
+    <div class="f"><label class="w">Ajouter<input id="fl-n" required placeholder="🇳🇴 Finnmark"></label></div>
+    <button class="go" type="submit">Ajouter</button>
+  </form>
+  <div class="tot" id="t-flags"></div>
+  <div class="chips" id="l-flags"></div>
+</section>
+
+<!-- ACTUALISER -->
+<section id="s-sync">
+  <div class="head"><h2>Actualiser</h2></div>
+  <p class="hint">Tout ce qui bouge avec le temps, remis à jour en un geste.</p>
+  <button class="go" id="sy-all" style="width:100%;margin-bottom:4px">Actualiser maintenant</button>
+  <p class="note" id="sy-run" style="margin:0 0 4px"></p>
+  <div id="sy-report"></div>
+  <div id="sy-inbox"></div>
+
+  <h3 style="font-size:17px;margin:4px 0 4px">Taux de change</h3>
+  <p class="note" style="margin:0 0 8px" id="sy-rates-when"></p>
+  <button class="go ghost" id="sy-rates">Récupérer les taux du jour</button>
+  <p class="note" id="sy-rates-st"></p>
+
+  <h3 style="font-size:17px;margin:22px 0 4px">Distances routières</h3>
+  <p class="note" style="margin:0 0 8px" id="sy-road-when"></p>
+  <button class="go ghost" id="sy-road">Calculer les segments manquants</button>
+  <button class="go ghost" id="sy-road-all" style="margin-top:8px">Tout recalculer</button>
+  <p class="note" id="sy-road-st"></p>
+
+  <h3 style="font-size:17px;margin:22px 0 4px">Événements</h3>
+  <p class="note" style="margin:0 0 8px">Le carnet ne connaît pas les dates des festivals et des courses : elles changent chaque année. Importe un lot d'événements, ou copie la demande ci-dessous et envoie-la-moi pour que je t'en prépare un à jour.</p>
+  <button class="go ghost" id="sy-ev">Importer un lot d'événements</button>
+  <input type="file" id="sy-ev-file" accept=".json,application/json" hidden>
+  <button class="go ghost" id="sy-ev-ask" style="margin-top:8px">Copier la demande à m'envoyer</button>
+  <p class="note" id="sy-ev-st"></p>
+
+  <h3 style="font-size:17px;margin:22px 0 4px">Cette application</h3>
+  <p class="note" style="margin:0 0 8px" id="sy-ver"></p>
+  <button class="go ghost" id="sy-install" style="display:none">Installer sur l'écran d'accueil</button>
+  <button class="go ghost" id="sy-upd" style="margin-top:8px">Rechercher une mise à jour</button>
+  <p class="note" id="sy-app-st"></p>
+</section>
+
+<!-- SAUVEGARDE -->
+<section id="s-save">
+  <div class="head"><h2>Sauvegarde</h2></div>
+  <p class="hint">Tout est sur cet appareil. Exporte régulièrement.</p>
+  <form class="add" id="f-meta">
+    <div class="f"><label>Nom du voyage<input id="mt-n"></label>
+      <label>Devise de référence<input id="mt-c" maxlength="3" style="text-transform:uppercase"></label></div>
+    <button class="go ghost" type="submit">Enregistrer</button>
+  </form>
+  <div style="display:flex;flex-direction:column;gap:9px">
+    <button class="go" id="b-exp">Exporter la sauvegarde</button>
+    <button class="go ghost" id="b-imp">Importer une sauvegarde</button>
+    <input type="file" id="b-file" accept=".json,application/json" hidden>
+    <button class="go ghost" id="b-print">Imprimer / PDF</button>
+    <button class="go danger" id="b-raz">Tout effacer</button>
+  </div>
+  <p class="note" id="save-msg"></p>
+  <p class="note" id="save-info"></p>
+</section>
+</div>
+<div id="upd"><span>Nouvelle version disponible.</span><button id="upd-go">Mettre à jour</button></div>
+
+<script>
+/* ============ modèle ============ */
+const TAGS=[['sport','Événement sportif'],['concert','Concert'],['vue','Vue incroyable'],
+ ['activite','Activité sportive'],['event','Événement'],['faire','À faire absolument'],['voir','À voir absolument']];
+const MONS=['J','F','M','A','M','J','J','A','S','O','N','D'];
+const MONSL=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const POSTES=['Carburant','Ferries & péages','Camping','Courses','Restaurant','Activités','Camion','Divers'];
+const BLANK={app:'les4a',v:3,trip:'',ref:'EUR',
+ vehicle:{l:0,h:0,w:0,p:0},
+ stops:[],acts:[],events:[],resas:{checked:{},custom:[]},journal:[],odo:[],fuel:[],maint:[],routes:{},manual:{},inbox:[],lastSync:{date:'',lines:[]},
+ budget:{prev:{},prevStop:{},rates:{EUR:1},items:[],ratesDate:'',ratesSrc:''},
+ flags:{list:[],on:{}},settings:{hereStop:null,orsKey:'',roadDate:'',evPack:''}};
+let D=JSON.parse(JSON.stringify(BLANK));
+const LS='carnet-les4a-v3';
+function save(){try{localStorage.setItem(LS,JSON.stringify(D))}catch(e){}}
+function merge(o){const d=JSON.parse(JSON.stringify(BLANK));
+ for(const k in d){if(o&&o[k]!==undefined&&o[k]!==null){
+  d[k]=(typeof d[k]==='object'&&!Array.isArray(d[k])&&typeof o[k]==='object'&&!Array.isArray(o[k]))
+    ?Object.assign(d[k],o[k]):o[k];}}
+ return d;}
+function load(){try{const r=localStorage.getItem(LS);if(r)D=merge(JSON.parse(r));}catch(e){}}
+
+const $=id=>document.getElementById(id);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nf=n=>(Math.round(n*100)/100).toLocaleString('fr-FR',{maximumFractionDigits:2});
+const df=s=>{if(!s)return'';const[a,b,c]=s.split('-');return c+'/'+b+'/'+a};
+const today=()=>new Date().toISOString().slice(0,10);
+const jm=s=>s?Math.round((new Date(s+'T12:00')-new Date(today()+'T12:00'))/864e5):null;
+const tagName=id=>(TAGS.find(t=>t[0]===id)||[,id])[1];
+
+/* ============ sélecteurs réutilisables ============ */
+let draft={stops:{m:[],t:[]},acts:{t:[]},events:{t:[]}};
+function monsHTML(sel){return MONS.map((m,i)=>`<span data-mon="${i}" class="${sel.includes(i)?'on':''}">${m}</span>`).join('')}
+function tagsHTML(scope,sel){return TAGS.map(([id,l])=>`<span class="chip ${sel.includes(id)?'on':''}" data-tg="${scope}:${id}">${l}</span>`).join('')}
+function refreshDrafts(){
+  $('st-mons').innerHTML=monsHTML(draft.stops.m);
+  $('st-tags').innerHTML=tagsHTML('stops',draft.stops.t);
+  $('ac-tags').innerHTML=tagsHTML('acts',draft.acts.t);
+  $('ev-tags').innerHTML=tagsHTML('events',draft.events.t);
+}
+
+/* ============ onglets ============ */
+const TABS=[['map','Carte'],['stops','Étapes'],['acts','Activités'],['events','Événements'],
+ ['resas','Réservations'],['budget','Budget'],['journal','Journal'],['truck','Camion'],
+ ['flags','Régions'],['sync','Actualiser'],['save','Sauvegarde']];
+let tab='stops';
+$('nav').innerHTML=TABS.map(([k,l])=>`<button data-t="${k}">${l}</button>`).join('');
+$('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(tab==='map'&&b.dataset.t!=='map')stopAnim();
+  tab=b.dataset.t;draw();
+  if(tab==='map'&&lmap)setTimeout(()=>{lmap.invalidateSize();},60);});
+
+/* ============ carte ============ */
+let view=null, LF=null, lfLoading=false, lmap=null, lgrp=null, lmk=null;
+let anim={t:0,on:false,sp:1,timer:null};
+let SV={W:640,H:340};
+
+function pts(){return D.stops.filter(s=>isFinite(+s.la)&&isFinite(+s.lo)&&(+s.la||+s.lo))}
+function merc(la){la=Math.max(-85,Math.min(85,la));return 180/Math.PI*Math.log(Math.tan(Math.PI/4+la*Math.PI/360))}
+function hav(a,b){const R=6371,r=Math.PI/180,dl=(b.la-a.la)*r,dg=(b.lo-a.lo)*r;
+  const x=Math.sin(dl/2)**2+Math.cos(a.la*r)*Math.cos(b.la*r)*Math.sin(dg/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x));}
+function routeKm(P){let k=0;for(let i=1;i<P.length;i++)k+=hav({la:+P[i-1].la,lo:+P[i-1].lo},{la:+P[i].la,lo:+P[i].lo});return k}
+
+/* --- itinéraires routiers (OpenRouteService, profil poids lourd) --- */
+function vhKey(){const v=D.vehicle;return `${+v.l||0}-${+v.h||0}-${+v.w||0}-${+v.p||0}`}
+function segKey(a,b){return `${(+a.la).toFixed(4)},${(+a.lo).toFixed(4)}>${(+b.la).toFixed(4)},${(+b.lo).toFixed(4)}@${vhKey()}`}
+function segData(a,b){return D.routes[segKey(a,b)]||null}
+
+/* trajet complet : géométrie routière si connue, sinon segment droit */
+function manData(a,b){const m=D.manual[segKey(a,b)];
+  return(m&&+m.km>0)?m:null;}
+function buildPath(){
+  const P=pts(),segs=[];
+  for(let i=1;i<P.length;i++){
+    const a=P[i-1],b=P[i],d=segData(a,b),m=manData(a,b);
+    const geo=!!(d&&d.geom&&d.geom.length>1);
+    segs.push({from:a,to:b,road:!!(m||geo),src:m?'gps':(geo?'ors':'vol'),
+      pts:geo?d.geom:[[+a.la,+a.lo],[+b.la,+b.lo]],
+      km:m?+m.km:(geo?d.km:hav({la:+a.la,lo:+a.lo},{la:+b.la,lo:+b.lo})),
+      min:m?(+m.min||null):(geo?d.min:null)});
+  }
+  return{P,segs};
+}
+function totals(){
+  const{segs}=buildPath();
+  let road=0,fly=0,miss=0,min=0,gps=0;
+  segs.forEach(s=>{if(s.src==='gps')gps++;
+    if(s.road){road+=s.km;min+=s.min||0}else{fly+=s.km;miss++}});
+  return{road,fly,miss,min,gps,n:segs.length};
+}
+
+/* position du camion à l'avancement t (0 → 1), le long du vrai tracé */
+function at(t){
+  const P=pts();if(!P.length)return null;
+  if(P.length===1)return{la:+P[0].la,lo:+P[0].lo,f:0,from:P[0],to:P[0]};
+  const{segs}=buildPath();
+  const tot=segs.reduce((a,s)=>a+s.km,0);
+  if(tot<=0)return{la:+P[0].la,lo:+P[0].lo,f:0,from:P[0],to:P[1]};
+  let d=Math.max(0,Math.min(1,t))*tot,k=0;
+  while(k<segs.length-1&&d>segs[k].km){d-=segs[k].km;k++}
+  const s=segs[k],f=s.km>0?d/s.km:0;
+  /* on avance point par point dans la géométrie du segment */
+  const g=s.pts;let acc=0,target=f*s.km,j=0;
+  for(;j<g.length-1;j++){
+    const l=hav({la:g[j][0],lo:g[j][1]},{la:g[j+1][0],lo:g[j+1][1]});
+    if(acc+l>=target||j===g.length-2){
+      const u=l>0?(target-acc)/l:0;
+      return{la:g[j][0]+(g[j+1][0]-g[j][0])*u,lo:g[j][1]+(g[j+1][1]-g[j][1])*u,
+             f,from:s.from,to:s.to,road:s.road};
+    }
+    acc+=l;
+  }
+  return{la:g[g.length-1][0],lo:g[g.length-1][1],f:1,from:s.from,to:s.to,road:s.road};
+}
+function dateAt(p){
+  if(!p||!p.from.d||!p.to.d)return p&&p.from.d?df(p.from.d):'';
+  const a=new Date(p.from.d+'T12:00'),b=new Date(p.to.d+'T12:00');
+  return df(new Date(+a+(+b-+a)*p.f).toISOString().slice(0,10));
+}
+
+/* appel ORS pour un segment */
+function orsSegment(a,b,key){
+  const v=D.vehicle,r={};
+  if(+v.l)r.length=+v.l; if(+v.w)r.width=+v.w; if(+v.h)r.height=+v.h; if(+v.p)r.weight=+v.p;
+  const body={coordinates:[[+a.lo,+a.la],[+b.lo,+b.la]],
+    options:{vehicle_type:'hgv',profile_params:{restrictions:r}}};
+  return fetch('https://api.openrouteservice.org/v2/directions/driving-hgv/geojson',
+    {method:'POST',headers:{'Authorization':key,'Content-Type':'application/json'},body:JSON.stringify(body)})
+   .then(res=>res.json().then(j=>{
+     if(!res.ok){const m=(j&&j.error&&(j.error.message||j.error))||('HTTP '+res.status);throw new Error(m)}
+     const ft=j.features&&j.features[0];
+     if(!ft)throw new Error('aucun itinéraire');
+     const c=ft.geometry.coordinates,s=ft.properties.summary;
+     const step=Math.max(1,Math.ceil(c.length/150));
+     const geom=c.filter((_,i)=>i%step===0||i===c.length-1).map(p=>[p[1],p[0]]);
+     return{km:(s.distance||0)/1000,min:Math.round((s.duration||0)/60),geom};
+   }));
+}
+function computeRoutes(){
+  const key=(D.settings.orsKey||'').trim();
+  const P=pts();
+  if(!key)return orsMsg('Colle ta clé OpenRouteService au-dessus.',0);
+  if(P.length<2)return orsMsg('Il faut au moins deux étapes géolocalisées.',0);
+  const todo=[];
+  for(let i=1;i<P.length;i++)if(!segData(P[i-1],P[i]))todo.push([P[i-1],P[i]]);
+  if(!todo.length)return orsMsg('Tous les segments sont déjà calculés.',1);
+  let done=0,fail=0;
+  orsMsg(`Calcul en cours… 0/${todo.length}`,null);
+  const next=()=>{
+    if(!todo.length){
+      const t=totals();
+      orsMsg(`${done} segment(s) calculé(s)${fail?`, ${fail} en échec`:''} · ${nf(t.road)} km de route`,fail?0:1);
+      draw();return;}
+    const[a,b]=todo.shift();
+    orsSegment(a,b,key)
+      .then(r=>{D.routes[segKey(a,b)]=r;done++;})
+      .catch(e=>{fail++;orsMsg(`${esc(a.n)} → ${esc(b.n)} : ${esc(e.message)}`,0);})
+      .then(()=>{orsMsg(`Calcul en cours… ${done+fail}/${done+fail+todo.length}`,null);
+        save();setTimeout(next,1600);});
+  };
+  next();
+}
+function orsMsg(t,ok){const el=$('ors-st');if(!el)return;
+  el.innerHTML=ok===null?esc(t):`<span class="${ok?'ok':'ko'}">${esc(t)}</span>`;}
+
+/* --- Leaflet, si le réseau répond --- */
+function loadLeaflet(cb){
+  if(LF!==null)return cb(LF);
+  if(lfLoading)return;
+  if(typeof document.head==='undefined'||!document.head){LF=false;return cb(false)}
+  lfLoading=true;let done=false;
+  const fin=v=>{if(done)return;done=true;lfLoading=false;LF=v;cb(v)};
+  try{
+    const css=document.createElement('link');css.rel='stylesheet';
+    css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
+    const js=document.createElement('script');js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload=()=>fin(!!window.L);js.onerror=()=>fin(false);
+    setTimeout(()=>fin(!!window.L),6000);
+    document.head.appendChild(js);
+  }catch(e){fin(false)}
+}
+
+function drawMap(){
+  if(tab!=='map'){try{drawSegs()}catch(e){}return;}
+  const P=pts();
+  if(!P.length){
+    $('map').innerHTML='<div class="empty" style="border:0;padding:130px 20px">Aucune étape géolocalisée.<br>Ajoute latitude et longitude à tes étapes.</div>';
+    $('map-ctl').innerHTML='';$('map-legend').innerHTML='';stopAnim();return;}
+  if(LF===null){drawSVG(P);loadLeaflet(()=>drawMap());}
+  else if(LF===true)drawLeaflet(P);
+  else drawSVG(P);
+  drawCtl(P);drawLegend(P);drawSegs();moveTruck();
+}
+
+function drawLeaflet(P){
+  const first=!lmap;
+  if(first){$('map').innerHTML='';
+    lmap=window.L.map($('map'),{scrollWheelZoom:true});
+    /* retire le préfixe Leaflet (et son drapeau) ; le crédit OpenStreetMap reste */
+    try{lmap.attributionControl.setPrefix(false)}catch(e){}
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {maxZoom:17,attribution:'&copy; OpenStreetMap'}).addTo(lmap);
+    lgrp=window.L.layerGroup().addTo(lmap);}
+  lgrp.clearLayers();
+  const ll=P.map(p=>[+p.la,+p.lo]);
+  buildPath().segs.forEach(s=>window.L.polyline(s.pts,
+    {color:s.src==='gps'?'#2C4C86':(s.road?'#E8A33D':'#B9A277'),
+     weight:s.road?4:2.5,dashArray:s.road?null:'7 5'}).addTo(lgrp));
+  P.forEach((p,i)=>window.L.marker([+p.la,+p.lo],{icon:window.L.divIcon({className:'',
+    html:`<div class="mk${p.fr?' fr':''}">${i+1}</div>`,iconSize:[22,22],iconAnchor:[11,11]})})
+    .addTo(lgrp).bindPopup(`<b>${esc(p.n)}</b>${p.c?'<br>'+esc(p.c):''}${p.d?'<br>'+df(p.d):''}`));
+  lmk=window.L.marker(ll[0],{icon:window.L.divIcon({className:'',html:'<div class="tk">🚚</div>',
+    iconSize:[26,26],iconAnchor:[13,13]}),zIndexOffset:1000}).addTo(lgrp);
+  if(first||view===null){lmap.fitBounds(ll,{padding:[30,30]});view='lf'}
+  lmap.invalidateSize();
+}
+
+function drawSVG(P){
+  const xs=P.map(p=>+p.lo),ys=P.map(p=>merc(+p.la));
+  let x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);
+  const pad=Math.max(x1-x0,y1-y0)*0.15+1.2;x0-=pad;x1+=pad;y0-=pad;y1+=pad;
+  if(!view||view==='lf')view={x0,x1,y0,y1};
+  const W=SV.W,H=SV.H,vb=view;
+  SV.sx=v=>(v-vb.x0)/(vb.x1-vb.x0)*W; SV.sy=v=>H-(v-vb.y0)/(vb.y1-vb.y0)*H;
+  const polys=buildPath().segs.map(s=>({road:s.road,src:s.src,
+    d:s.pts.map(q=>SV.sx(q[1]).toFixed(1)+','+SV.sy(merc(q[0])).toFixed(1)).join(' ')}));
+  const grid=[];
+  for(let la=-80;la<=85;la+=5){const y=SV.sy(merc(la));if(y>0&&y<H)
+    grid.push(`<line x1="0" y1="${y.toFixed(1)}" x2="${W}" y2="${y.toFixed(1)}"/><text x="4" y="${(y-3).toFixed(1)}">${la}°</text>`)}
+  for(let lo=-180;lo<=180;lo+=5){const x=SV.sx(lo);if(x>0&&x<W)
+    grid.push(`<line x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${H}"/>`)}
+  const marks=P.map((p,i)=>{const x=SV.sx(+p.lo),y=SV.sy(merc(+p.la));
+    return `<g><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="${p.fr?'#2C4C86':'#0E2340'}" stroke="#fff" stroke-width="2"/>
+      <text x="${x.toFixed(1)}" y="${(y+3.2).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="#fff" font-weight="700">${i+1}</text>
+      <title>${esc(p.n)}${p.c?' — '+esc(p.c):''}</title></g>`}).join('');
+  $('map').innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+    <rect width="${W}" height="${H}" fill="#DDE6EA"/>
+    <g stroke="#C3D2D8" stroke-width=".7" fill="#8FA3AC" font-size="8">${grid.join('')}</g>
+    ${polys.map(p=>`<polyline points="${p.d}" fill="none" stroke="${p.src==='gps'?'#2C4C86':(p.road?'#E8A33D':'#B9A277')}" stroke-width="${p.road?3:2}" stroke-linejoin="round" ${p.road?'':'stroke-dasharray="6 4"'}/>`).join('')}
+    ${marks}<g id="svg-truck"><text font-size="19" text-anchor="middle" y="6">🚚</text></g></svg>`;
+  bindPan();
+}
+
+function moveTruck(){
+  const p=at(anim.t);if(!p)return;
+  if(LF===true&&lmk){lmk.setLatLng([p.la,p.lo]);}
+  else{const el=$('svg-truck');
+    if(el&&SV.sx)el.setAttribute('transform',`translate(${SV.sx(p.lo).toFixed(1)},${SV.sy(merc(p.la)).toFixed(1)})`);}
+  const lab=$('map-pos');
+  if(lab)lab.innerHTML=`<b>${esc(p.from.n)}</b> → ${esc(p.to.n)}${dateAt(p)?' · '+dateAt(p):''} · ${Math.round(anim.t*100)} %`;
+  const sl=$('map-range');if(sl&&+sl.value!==Math.round(anim.t*1000))sl.value=Math.round(anim.t*1000);
+}
+function tick(){anim.t+=0.0015*anim.sp;if(anim.t>=1){anim.t=1;stopAnim()}moveTruck()}
+function startAnim(){if(pts().length<2)return;if(anim.t>=1)anim.t=0;
+  anim.on=true;clearInterval(anim.timer);anim.timer=setInterval(tick,50);syncBtn()}
+function stopAnim(){anim.on=false;clearInterval(anim.timer);anim.timer=null;syncBtn()}
+function syncBtn(){const b=$('map-play');if(b)b.textContent=anim.on?'⏸':'▶';}
+
+function drawCtl(P){
+  const few=P.length<2;
+  $('map-ctl').innerHTML=`
+    <button id="map-play" ${few?'disabled':''}>▶</button>
+    <button class="sec" id="map-rew" ${few?'disabled':''}>⟲</button>
+    <input type="range" id="map-range" min="0" max="1000" value="${Math.round(anim.t*1000)}" ${few?'disabled':''}>
+    <select id="map-sp"><option value="1">×1</option><option value="3">×3</option><option value="8">×8</option></select>
+    <button class="sec" id="map-fit">Recadrer</button>
+    <div class="pos" id="map-pos"></div>`;
+  $('map-sp').value=String(anim.sp);
+  $('map-play').addEventListener('click',()=>anim.on?stopAnim():startAnim());
+  $('map-rew').addEventListener('click',()=>{stopAnim();anim.t=0;moveTruck()});
+  $('map-range').addEventListener('input',e=>{stopAnim();anim.t=+e.target.value/1000;moveTruck()});
+  $('map-sp').addEventListener('change',e=>{anim.sp=+e.target.value;
+    if(anim.on){clearInterval(anim.timer);anim.timer=setInterval(tick,50)}});
+  $('map-fit').addEventListener('click',()=>{view=null;drawMap()});
+  syncBtn();
+}
+function drawSegs(){
+  const{segs}=buildPath();
+  if(!segs.length){$('l-segs').innerHTML='<tr><td colspan="3" style="color:var(--gris)">Au moins deux étapes géolocalisées sont nécessaires.</td></tr>';
+    $('segs-st').textContent='';return;}
+  $('l-segs').innerHTML=segs.map(s=>{
+    const k=segKey(s.from,s.to),m=D.manual[k]||{};
+    const auto=s.src==='ors'?`auto : ${nf(s.km)} km`:(s.src==='vol'?`à vol d'oiseau : ${nf(s.km)} km`:'');
+    return `<tr><td>${esc(s.from.n)} → ${esc(s.to.n)}
+      ${auto&&!(+m.km>0)?`<span class="s" style="display:block;font-size:12px;color:var(--gris)">${auto}</span>`:''}
+      ${+m.km>0?'<span class="badge b-fr">GPS</span>':''}</td>
+      <td class="num"><input type="number" step="0.1" data-segk="${esc(k)}" data-f="km" value="${m.km||''}" placeholder="—" style="width:78px;text-align:right;padding:5px 6px;margin:0"></td>
+      <td class="num"><input type="number" step="1" data-segk="${esc(k)}" data-f="min" value="${m.min||''}" placeholder="—" style="width:70px;text-align:right;padding:5px 6px;margin:0"></td></tr>`}).join('');
+  const t=totals();
+  $('segs-st').textContent=t.gps?`${t.gps} segment(s) sur ${t.n} validés au GPS · total ${nf(t.road+t.fly)} km`
+    :'Aucun segment validé pour l\'instant.';
+}
+function drawLegend(P){
+  const t=totals();
+  const h=t.min?`${Math.floor(t.min/60)} h ${String(t.min%60).padStart(2,'0')}`:'';
+  const dist=t.miss===0
+    ? `<b>${nf(t.road)} km de route</b>${h?' · '+h+' de conduite':''}`
+    : (t.road>0
+      ? `<b>${nf(t.road)} km de route</b> sur ${t.n-t.miss}/${t.n} segments · ${nf(t.fly)} km encore à vol d'oiseau`
+      : `${nf(t.fly)} km à vol d'oiseau <span class="ko">(estimation basse)</span>`);
+  $('map-legend').innerHTML=`<p class="note">${P.length} étape${P.length>1?'s':''} ·
+    de ${nf(Math.min(...P.map(p=>+p.la)))}°N à ${nf(Math.max(...P.map(p=>+p.la)))}°N · ${dist} ·
+    ${t.gps?`<b>${t.gps}/${t.n} segment(s) validé(s) au GPS</b> · `:''}<span style="color:#2C4C86">■</span> ville francophone${LF===true?'':' · fond de carte hors ligne'}</p>`;
+}
+function bindPan(){
+  const svg=$('map').querySelector('svg');if(!svg||!svg.addEventListener)return;
+  let drag=null;
+  const pt=e=>{const t=e.touches?e.touches[0]:e;return{x:t.clientX,y:t.clientY}};
+  const start=e=>{drag=pt(e);svg.style.cursor='grabbing'};
+  const move=e=>{if(!drag)return;const p=pt(e),r=svg.getBoundingClientRect();
+    const dx=(p.x-drag.x)/r.width*(view.x1-view.x0),dy=(p.y-drag.y)/r.height*(view.y1-view.y0);
+    view.x0-=dx;view.x1-=dx;view.y0+=dy;view.y1+=dy;drag=p;drawSVG(pts());moveTruck();e.preventDefault()};
+  const end=()=>{drag=null};
+  svg.addEventListener('mousedown',start);svg.addEventListener('touchstart',start,{passive:true});
+  window.addEventListener('mousemove',move);svg.addEventListener('touchmove',move,{passive:false});
+  window.addEventListener('mouseup',end);svg.addEventListener('touchend',end);
+  svg.addEventListener('wheel',e=>{e.preventDefault();const f=e.deltaY>0?1.15:.87;
+    const cx=(view.x0+view.x1)/2,cy=(view.y0+view.y1)/2,w=(view.x1-view.x0)*f/2,h=(view.y1-view.y0)*f/2;
+    view={x0:cx-w,x1:cx+w,y0:cy-h,y1:cy+h};drawSVG(pts());moveTruck();},{passive:false});
+}
+
+/* ============ rendu ============ */
+function draw(){
+  TABS.forEach(([k])=>{$('s-'+k).classList.toggle('on',k===tab);
+    $('nav').querySelector(`[data-t="${k}"]`).classList.toggle('on',k===tab);});
+  $('trip').textContent=D.trip||'Carnet de bord';
+  const n=D.stops.length;
+  $('sub').textContent=n?`${n} étape${n>1?'s':''} · ${D.stops.reduce((a,s)=>a+(+s.x||0),0)} nuits · ${D.acts.length} activité${D.acts.length>1?'s':''}`
+    :"Aucune étape. Commence par l'onglet Étapes.";
+  refreshDrafts();fillSel($('rs-s'));fillSel($('jr-s'));fillSel($('ac-s'));fillSel($('ev-s'));fillSel($('dp-s'));
+  drawMap();drawStops();drawActs();drawEvents();drawResas();drawBudget();drawJournal();drawTruck();drawFlags();drawSync();drawSave();
+  save();
+}
+function fillSel(sel){const v=sel.value;
+  sel.innerHTML='<option value="">—</option>'+D.stops.map(s=>`<option value="${s.id}">${esc(s.n)}</option>`).join('');
+  sel.value=v;}
+function empty(m){return `<div class="empty">${m}</div>`}
+function tools(k,id,ord){return `<div class="tools">${ord?`<button data-up="${k}:${id}">↑</button><button data-dn="${k}:${id}">↓</button>`:''}<button data-rm="${k}:${id}">✕</button></div>`}
+function stopIx(id){return D.stops.findIndex(s=>s.id===id)}
+function stopBadge(id,none){const i=stopIx(id);
+  return i<0?`<span class="badge b-ko">${none||'hors étape'}</span>`
+            :`<span class="badge b-st">${i+1} · ${esc(D.stops[i].n)}</span>`;}
+function stopOrd(id){const i=stopIx(id);return i<0?9e9:i}
+function tagList(t){return t&&t.length?`<div class="tags">${t.map(x=>`<span class="tag">${esc(tagName(x))}</span>`).join('')}</div>`:''}
+
+function fitCheck(s){
+  const v=D.vehicle,out=[];
+  if(v.l&&s.ml&&+v.l>+s.ml)out.push(`longueur ${v.l} m > ${s.ml} m`);
+  if(v.h&&s.mh&&+v.h>+s.mh)out.push(`hauteur ${v.h} m > ${s.mh} m`);
+  if(v.p&&s.mp&&+v.p>+s.mp)out.push(`poids ${v.p} t > ${s.mp} t`);
+  return out;}
+function seasonCheck(s){
+  if(!s.d||!s.m||!s.m.length)return null;
+  const mo=+s.d.slice(5,7)-1;
+  return s.m.includes(mo)?null:`arrivée en ${MONSL[mo]}, hors des mois favorables (${s.m.map(i=>MONSL[i]).join(', ')})`;}
+
+const openStops=new Set();
+function evForStop(s){
+  return D.events.filter(e=>e.s===s.id||(!e.s&&s.d&&e.d&&s.d>=e.d&&s.d<=(e.e||e.d)));
+}
+function hopTo(i){
+  const a=D.stops[i],b=D.stops[i+1];
+  if(!b)return'';
+  const geo=x=>isFinite(+x.la)&&isFinite(+x.lo)&&(+x.la||+x.lo);
+  if(!geo(a)||!geo(b))return`<div class="hop">Étape suivante : <b>${esc(b.n)}</b></div>`;
+  const m=manData(a,b),d=m||segData(a,b);
+  if(d){const h=d.min?`${Math.floor(d.min/60)} h ${String(d.min%60).padStart(2,'0')}`:'';
+    return`<div class="hop">Vers <b>${esc(b.n)}</b> : <b>${nf(d.km)} km</b> de route${h?' · '+h+' de conduite':''}${m?' · validé au GPS':''}</div>`;}
+  const k=hav({la:+a.la,lo:+a.lo},{la:+b.la,lo:+b.lo});
+  return`<div class="hop">Vers <b>${esc(b.n)}</b> : ${nf(k)} km à vol d'oiseau (distance routière non calculée)</div>`;
+}
+function drawStops(){
+  const N=D.stops.length;
+  const shown=$('f-stop')&&!$('f-stop').classList.contains('hid');
+  $('st-all').innerHTML=(N?`<span class="chip" id="st-exp">${openStops.size<N?'Tout déplier':'Tout replier'}</span>`:'')
+    +`<span class="chip add-n${shown?' on':''}" id="st-new">${shown?'Fermer le formulaire':'+ Nouvelle étape'}</span>`;
+  $('l-stops').innerHTML=N?D.stops.map((s,i)=>{
+    const fit=fitCheck(s),sea=seasonCheck(s),open=openStops.has(s.id);
+    const A=D.acts.filter(a=>a.s===s.id),R=D.resas.custom.filter(r=>r.s===s.id),
+          J=D.journal.filter(j=>j.s===s.id),E=evForStop(s);
+    const cnt=[A.length&&A.length+' activité'+(A.length>1?'s':''),
+               E.length&&E.length+' événement'+(E.length>1?'s':''),
+               R.length&&R.length+' réservation'+(R.length>1?'s':''),
+               J.length&&J.length+' note'+(J.length>1?'s':'')].filter(Boolean).join(' · ');
+    return `<div class="card stop${open?' open':''}">
+      ${fit.length?`<div class="warn" style="margin:11px 12px 0"><b>Gabarit :</b> ${fit.join(' · ')}</div>`:''}
+      ${sea?`<div class="warn" style="margin:11px 12px 0"><b>Saison :</b> ${esc(sea)}</div>`:''}
+      <div class="st-top">
+        <button class="st-h" data-so="${s.id}" aria-expanded="${open}">
+          <span class="ti">
+            <span class="t" style="display:block">${i+1}. ${esc(s.n)}${s.fr?'<span class="badge b-fr">francophone</span>':''}</span>
+            <span class="m" style="display:block">${[esc(s.c),s.d?df(s.d):'',s.x?s.x+' nuit'+(s.x>1?'s':''):''].filter(Boolean).join(' · ')||'—'}</span>
+            ${cnt?`<span class="cnt">${cnt}</span>`:''}
+          </span>
+          <span class="chev">▾</span>
+        </button>
+        ${tools('stops',s.id,1)}
+      </div>
+      <div class="st-b">
+        ${s.o?`<h4>Ce qui est prévu</h4><div class="n" style="margin-top:0">${esc(s.o)}</div>`:''}
+        ${A.length?`<h4>Activités</h4>`+A.map(a=>`<div class="lnk"><b>${esc(a.n)}</b>${a.k?'<span class="badge b-done">filles</span>':''}
+          <span class="s">${[a.a?'dès '+a.a+' ans':'',a.p?nf(a.p)+' '+D.ref:'',
+            (a.t||[]).map(x=>tagName(x)).join(', ')].filter(Boolean).join(' · ')}</span>
+          ${a.o?`<span class="s">${esc(a.o)}</span>`:''}</div>`).join(''):''}
+        ${E.length?`<h4>Événements sur place</h4>`+E.map(e=>`<div class="lnk go-ev"><b>${esc(e.n)}</b>${e.i?'<span class="badge b-now">incontournable</span>':''}
+          <span class="s">${[esc(e.p),e.d?df(e.d)+(e.e&&e.e!==e.d?' → '+df(e.e):''):''].filter(Boolean).join(' · ')}</span></div>`).join(''):''}
+        ${R.length?`<h4>Réservations</h4>`+R.map(r=>`<div class="lnk"><b>${esc(r.n)}</b>
+          <span class="s">${D.resas.checked[r.id]?'réservé':'à réserver'}${r.d?' · '+df(r.d):''}</span></div>`).join(''):''}
+        ${J.length?`<h4>Journal</h4>`+J.map(j=>`<div class="lnk"><span class="s">${j.d?df(j.d):''}</span>${esc(j.t)}</div>`).join(''):''}
+        ${s.m&&s.m.length?`<h4>Mois favorables</h4><div class="mons" style="margin-top:0">${MONS.map((m,j)=>`<span class="${s.m.includes(j)?'on':''}">${m}</span>`).join('')}</div>`:''}
+        ${(s.t&&s.t.length)?`<h4>Centres d'intérêt</h4>${tagList(s.t).replace('margin-top:7px','')}`:''}
+        ${(plannedStop(s.id)||spentStop(s.id))?`<h4>Budget de l'étape</h4><div class="lnk">
+          <b>${nf(spentStop(s.id))} ${D.ref}</b> dépensés${plannedStop(s.id)?` sur ${nf(plannedStop(s.id))} prévus`:''}
+          ${plannedStop(s.id)?`<span class="s ${spentStop(s.id)>plannedStop(s.id)?'ko':''}">${
+            spentStop(s.id)>plannedStop(s.id)?'dépassement de '+nf(spentStop(s.id)-plannedStop(s.id)):'reste '+nf(plannedStop(s.id)-spentStop(s.id))} ${D.ref}</span>`:''}
+          </div>`:''}
+        ${(isFinite(+s.la)&&(+s.la||+s.lo))?`<div class="hop">Position : ${nf(s.la)}, ${nf(s.lo)}</div>`:''}
+        ${!s.o&&!A.length&&!E.length&&!R.length&&!J.length?`<div class="note" style="margin:0">Rien de prévu pour l'instant. Ajoute des notes à l'étape, ou une activité qui lui est rattachée.</div>`:''}
+        ${hopTo(i)}
+      </div></div>`}).join('')
+    :empty('Aucune étape.');
+}
+let acFilter='';
+function drawActs(){
+  $('ac-filter').innerHTML=`<span class="chip ${acFilter?'':'on'}" data-af="">Toutes</span>`+
+    TAGS.map(([id,l])=>`<span class="chip ${acFilter===id?'on':''}" data-af="${id}">${l}</span>`).join('')+
+    `<span class="chip ${acFilter==='kids'?'on':''}" data-af="kids">Pour les filles</span>`;
+  const L=D.acts.filter(a=>!acFilter||(acFilter==='kids'?a.k:(a.t||[]).includes(acFilter)))
+    .slice().sort((a,b)=>stopOrd(a.s)-stopOrd(b.s));
+  $('l-acts').innerHTML=L.length?L.map(a=>{
+    return `<div class="card"><div class="row"><div>
+      <div style="margin-bottom:4px">${stopBadge(a.s,'non rattachée')}</div>
+      <div class="t">${esc(a.n)}${a.k?'<span class="badge b-done">filles</span>':''}</div>
+      <div class="m">${[a.a?'dès '+a.a+' ans':'',a.p?nf(a.p)+' '+D.ref:''].filter(Boolean).join(' · ')||'—'}</div>
+      ${tagList(a.t)}${a.o?`<div class="n">${esc(a.o)}</div>`:''}
+    </div>${tools('acts',a.id)}</div></div>`}).join('')
+    :empty(acFilter?'Aucune activité pour ce filtre.':'Aucune activité.');
+}
+function drawEvents(){
+  const L=D.events.slice().sort((a,b)=>(a.d||'').localeCompare(b.d||'')||stopOrd(a.s)-stopOrd(b.s));
+  $('l-events').innerHTML=L.length?L.map(e=>{
+    const j=jm(e.d);
+    let hit='',tag=stopBadge(e.s,'non rattaché');
+    if(!e.s&&e.d){const m=D.stops.find(s=>s.d&&s.d>=e.d&&s.d<=(e.e||e.d));
+      if(m){tag=stopBadge(m.id);hit='<span class="badge b-done">rattaché d\'après les dates</span>';}
+      else hit='<span class="badge b-ko">aucune étape sur ces dates</span>';}
+    else if(e.s&&e.d){const st=D.stops[stopIx(e.s)];
+      hit=(st&&st.d&&st.d>=e.d&&st.d<=(e.e||e.d))?'<span class="badge b-done">dates concordantes</span>'
+        :`<span class="badge b-ko">l'étape n'est pas datée sur ces jours</span>`;}
+    return `<div class="card"><div class="row"><div>
+      <div style="margin-bottom:4px">${tag}</div>
+      <div class="t">${esc(e.n)}${e.i?'<span class="badge b-now">incontournable</span>':''}</div>
+      <div class="m">${[esc(e.p),e.d?df(e.d)+(e.e&&e.e!==e.d?' → '+df(e.e):''):'',
+        j!==null&&j>=0?'J−'+j:''].filter(Boolean).join(' · ')||'—'}</div>
+      <div style="margin-top:5px">${hit}</div>${tagList(e.t)}
+    </div>${tools('events',e.id)}</div></div>`}).join('')
+    :empty('Aucun événement.');
+}
+function drawResas(){
+  const L=D.resas.custom;
+  $('l-resas').innerHTML=L.length?L.map(r=>{
+    const done=!!D.resas.checked[r.id],j=jm(r.d);
+    let b='<span class="badge b-far">—</span>';
+    if(done)b='<span class="badge b-done">réservé</span>';
+    else if(j!==null)b=`<span class="badge ${j<0?'b-done':j<=30?'b-now':j<=90?'b-soon':'b-far'}">${j<0?'passé':'J−'+j}</span>`;
+    const st=D.stops.find(s=>s.id===r.s);
+    return `<div class="card"><div class="row"><div>
+      <div class="t"><input type="checkbox" data-ck="${r.id}" ${done?'checked':''}>${esc(r.n)}${b}</div>
+      <div class="m">${[r.d?df(r.d):'',st?esc(st.n):''].filter(Boolean).join(' · ')||'—'}</div>
+    </div>${tools('resas',r.id)}</div></div>`}).join(''):empty('Rien à réserver.');
+}
+function conv(m,c){const r=D.budget.rates[c];return r?m*r:m}
+let buView='gen';
+function spentStop(id){return D.budget.items.filter(i=>(i.s||'')===id).reduce((a,i)=>a+conv(+i.m,i.c),0)}
+function plannedStop(id){return +D.budget.prevStop[id]||0}
+function drawBudget(){
+  const ref=D.ref||'EUR';
+  const dep=D.budget.items.reduce((a,i)=>a+conv(+i.m,i.c),0);
+  /* le prévu est facultatif : on ne compare que les étapes qui en ont un */
+  const budg=Object.keys(D.budget.prevStop).filter(k=>+D.budget.prevStop[k]>0);
+  const prev=budg.reduce((a,k)=>a+(+D.budget.prevStop[k]||0),0);
+  const depB=budg.reduce((a,k)=>a+spentStop(k),0);
+  const reste=prev-depB, hasPrev=prev>0;
+  const nAll=D.stops.length+(spentStop('')||plannedStop('')?1:0);
+  const part=hasPrev&&budg.length<nAll?` sur ${budg.length}/${nAll}`:'';
+  $('t-budget').innerHTML=`<div>Dépensé<b>${nf(dep)} ${ref}</b></div>`
+    +(hasPrev?`<div>Prévu${part}<b>${nf(prev)} ${ref}</b></div>
+      <div>Reste${part}<b class="${reste<0?'neg':'pos'}">${nf(reste)} ${ref}</b></div>`
+     :`<div>Étapes avec dépenses<b>${D.stops.filter(s=>spentStop(s.id)).length}</b></div>`);
+  $('bu-seg').innerHTML=`<span class="${buView==='gen'?'on':''}" data-bv="gen">Général</span>
+    <span class="${buView==='stop'?'on':''}" data-bv="stop">Par étape</span>`;
+  const cell=(k,v)=>`<input type="number" step="1" data-${k}="${v.k}" value="${v.v||''}" placeholder="—" style="width:86px;text-align:right;padding:5px 7px;margin:0">`;
+  const pct=v=>dep>0?Math.round(v/dep*100)+' %':'—';
+
+  if(buView==='gen'){
+    $('bu-h').textContent='Total par étape';
+    $('bu-hint').textContent="Addition automatique de ce que tu as saisi. Rien à prévoir à l'avance.";
+    $('bu-th').innerHTML='<tr><th>Étape</th><th class="num">Dépensé</th><th class="num">Part</th></tr>';
+    const rows=D.stops.map((s,i)=>{const d=spentStop(s.id);
+      return `<tr><td>${i+1}. ${esc(s.n)}</td><td class="num">${d?nf(d):'—'}</td><td class="num pct">${d?pct(d):''}</td></tr>`});
+    const hd=spentStop('');
+    if(hd)rows.push(`<tr><td style="color:var(--gris)">Hors étape</td><td class="num">${nf(hd)}</td><td class="num pct">${pct(hd)}</td></tr>`);
+    rows.push(`<tr class="tot-row"><td>Total du voyage</td><td class="num">${nf(dep)} ${ref}</td><td></td></tr>`);
+    $('l-prev').innerHTML=rows.length>1?rows.join(''):'<tr><td colspan="3" style="color:var(--gris)">Aucune dépense enregistrée.</td></tr>';
+    const P=POSTES.map(p=>({p,d:D.budget.items.filter(i=>i.p===p).reduce((a,i)=>a+conv(+i.m,i.c),0)})).filter(x=>x.d);
+    $('bu-poste').innerHTML=P.length?`<h3 style="font-size:17px;margin:24px 0 8px">Répartition par poste</h3>
+      <table><thead><tr><th>Poste</th><th class="num">Dépensé</th><th class="num">Part</th></tr></thead><tbody>${
+      P.sort((a,b)=>b.d-a.d).map(x=>`<tr><td>${x.p}</td><td class="num">${nf(x.d)}</td><td class="num pct">${pct(x.d)}</td></tr>`).join('')
+      }<tr class="tot-row"><td>Total</td><td class="num">${nf(dep)} ${ref}</td><td></td></tr></tbody></table>`:'';
+  }else{
+    $('bu-h').textContent='Prévisionnel par étape';
+    $('bu-hint').textContent='Facultatif : laisse vide si tu ne veux pas prévoir. Le total global reste calculé sur le dépensé.';
+    $('bu-th').innerHTML='<tr><th>Étape</th><th class="num">Prévu</th><th class="num">Dépensé</th><th class="num">Reste</th></tr>';
+    const rows=D.stops.map((s,i)=>{const d=spentStop(s.id),v=plannedStop(s.id);
+      return `<tr><td>${i+1}. ${esc(s.n)}</td><td class="num">${cell('prevs',{k:s.id,v})}</td>
+        <td class="num">${d?nf(d):'—'}</td><td class="num ${v&&d>v?'ko':''}">${v?nf(v-d):'—'}</td></tr>`});
+    const hd=spentStop(''),hv=plannedStop('');
+    rows.push(`<tr><td style="color:var(--gris)">Hors étape</td><td class="num">${cell('prevs',{k:'',v:hv})}</td>
+      <td class="num">${hd?nf(hd):'—'}</td><td class="num ${hv&&hd>hv?'ko':''}">${hv?nf(hv-hd):'—'}</td></tr>`);
+    rows.push(`<tr class="tot-row"><td>Total</td><td class="num">${hasPrev?nf(prev):'—'}</td>
+      <td class="num">${nf(dep)}</td><td class="num ${hasPrev&&reste<0?'ko':''}">${hasPrev?nf(reste):'—'}</td></tr>`);
+    if(hasPrev&&part)rows.push(`<tr><td colspan="4" class="note" style="padding-top:8px;border:0">Prévu et reste ne portent que sur les étapes où tu as saisi un prévu ; le dépensé couvre tout le voyage.</td></tr>`);
+    $('l-prev').innerHTML=rows.join('');
+    $('bu-poste').innerHTML='';
+  }
+  $('l-rates').innerHTML=Object.entries(D.budget.rates).map(([c,v])=>
+    `<tr><td><b>${c}</b>${c===ref?' <span class="badge b-done">réf.</span>':''}</td>
+     <td class="num">${c===ref?'1':nf(v)+' '+ref}</td>
+     <td class="num">${c===ref?'':`<button data-rmrate="${c}" style="border:1px solid var(--trait);border-radius:5px;padding:4px 8px;background:none;cursor:pointer">✕</button>`}</td></tr>`).join('');
+  $('bu-rw').textContent=D.budget.ratesDate
+    ?`Taux du ${df(D.budget.ratesDate)||D.budget.ratesDate}${D.budget.ratesSrc?' · '+D.budget.ratesSrc:''}`
+    :'Taux saisis à la main — onglet Actualiser pour les mettre à jour.';
+  $('l-deps').innerHTML=D.budget.items.length?D.budget.items.slice().reverse().map(i=>
+    `<div class="card"><div class="row"><div>
+      <div style="margin-bottom:4px">${stopBadge(i.s,'hors étape')}</div>
+      <div class="t">${esc(i.n)}</div>
+      <div class="m">${[i.d?df(i.d):'',i.p].filter(Boolean).join(' · ')}</div></div>
+      <div style="text-align:right"><div class="t">${nf(i.m)} ${i.c}</div>
+      ${i.c!==ref?`<div class="m">${nf(conv(+i.m,i.c))} ${ref}</div>`:''}
+      <div class="tools" style="justify-content:flex-end;margin-top:6px"><button data-rm="deps:${i.id}">✕</button></div>
+      </div></div></div>`).join(''):empty('Aucune dépense.');
+  $('dp-c').innerHTML=Object.keys(D.budget.rates).map(c=>`<option>${c}</option>`).join('');
+  $('dp-p').innerHTML=POSTES.map(p=>`<option>${p}</option>`).join('');
+}
+function drawJournal(){
+  $('l-jrn').innerHTML=D.journal.length?D.journal.slice().sort((a,b)=>(b.d||'').localeCompare(a.d||'')).map(j=>{
+    const st=D.stops.find(s=>s.id===j.s);
+    return `<div class="card"><div class="row"><div><div class="t">${j.d?df(j.d):'sans date'}${st?' · '+esc(st.n):''}</div>
+      <div class="n">${esc(j.t)}</div></div><div class="tools"><button data-rm="jrn:${j.id}">✕</button></div></div></div>`}).join('')
+    :empty('Journal vide.');
+}
+function drawTruck(){
+  const v=D.vehicle;
+  $('vh-l').value=v.l||'';$('vh-h').value=v.h||'';$('vh-w').value=v.w||'';$('vh-p').value=v.p||'';
+  const F=D.fuel.slice().sort((a,b)=>(+a.k)-(+b.k));
+  let tot=0,lit=0,km=0,last=null;
+  F.forEach(f=>{tot+=+f.p||0;
+    if(last&&f.f){const dk=(+f.k)-(+last.k);if(dk>0){km+=dk;lit+=+f.l||0}}
+    if(f.f)last=f;});
+  const conso=km>0?lit/km*100:null,odo=F.length?Math.max(...F.map(f=>+f.k)):0;
+  const gab=[v.l&&v.l+' m',v.h&&v.h+' m',v.p&&v.p+' t'].filter(Boolean).join(' · ');
+  $('t-truck').innerHTML=`<div>Gabarit<b>${gab||'—'}</b></div><div>Compteur<b>${odo?nf(odo)+' km':'—'}</b></div>
+    <div>Conso<b>${conso?nf(conso)+' L/100':'—'}</b></div><div>Carburant<b>${tot?nf(tot)+' '+D.ref:'—'}</b></div>`;
+  $('l-fuel').innerHTML=F.length?F.slice().reverse().map(f=>{
+    const i=F.indexOf(f),pr=i>0?F[i-1]:null,dk=pr?(+f.k)-(+pr.k):0;
+    const c=(pr&&f.f&&dk>0)?(+f.l/dk*100):null;
+    return `<div class="card"><div class="row"><div>
+      <div class="t">${nf(f.k)} km · ${nf(f.l)} L${f.f?'':' <span class="badge b-far">partiel</span>'}</div>
+      <div class="m">${[f.d?df(f.d):'',f.p?nf(f.p)+' '+D.ref:'',c?nf(c)+' L/100':''].filter(Boolean).join(' · ')}</div>
+      </div><div class="tools"><button data-rm="fuel:${f.id}">✕</button></div></div></div>`}).join('')
+    :empty('Aucun plein.');
+  $('l-mnt').innerHTML=D.maint.length?D.maint.slice().sort((a,b)=>(b.d||'').localeCompare(a.d||'')).map(m=>{
+    const rest=m.x&&odo?(+m.x-odo):null;
+    return `<div class="card"><div class="row"><div><div class="t">${esc(m.n)}</div>
+      <div class="m">${[m.d?df(m.d):'',m.k?nf(m.k)+' km':'',
+      rest!==null?(rest>0?'dans '+nf(rest)+' km':'<span class="ko">à refaire</span>'):''].filter(Boolean).join(' · ')}</div>
+      </div><div class="tools"><button data-rm="mnt:${m.id}">✕</button></div></div></div>`}).join('')
+    :empty('Aucun entretien.');
+}
+function drawFlags(){
+  const L=D.flags.list,on=Object.values(D.flags.on).filter(Boolean).length;
+  $('t-flags').innerHTML=`<div>Franchies<b>${on} / ${L.length}</b></div>`;
+  $('l-flags').innerHTML=L.length?L.map((f,i)=>
+    `<span class="chip ${D.flags.on[f]?'on':''}" data-fl="${esc(f)}">${esc(f)}<span class="x" data-flx="${i}">✕</span></span>`).join('')
+    :empty('Liste vide.');
+}
+function drawSave(){
+  if($('ors-key'))$('ors-key').value=D.settings.orsKey||'';
+  $('mt-n').value=D.trip;$('mt-c').value=D.ref;
+  const n=D.stops.length+D.acts.length+D.events.length+D.resas.custom.length+D.journal.length+D.fuel.length+D.maint.length+D.budget.items.length;
+  $('save-info').textContent=`${n} enregistrement${n>1?'s':''} en mémoire sur cet appareil.`;
+}
+
+/* ============ actions ============ */
+function on(id,fn){$(id).addEventListener('submit',e=>{e.preventDefault();fn();draw();})}
+on('f-stop',()=>{D.stops.push({id:uid(),n:$('st-n').value.trim(),c:$('st-c').value.trim(),d:$('st-d').value,
+  x:$('st-x').value,la:$('st-la').value,lo:$('st-lo').value,m:draft.stops.m.slice(),t:draft.stops.t.slice(),
+  ml:$('st-ml').value,mh:$('st-mh').value,mp:$('st-mp').value,fr:$('st-fr').checked,o:$('st-o').value.trim()});
+  ['st-n','st-c','st-d','st-x','st-la','st-lo','st-ml','st-mh','st-mp','st-o'].forEach(i=>$(i).value='');
+  $('st-fr').checked=false;draft.stops={m:[],t:[]};view=null;
+  openStops.add(D.stops[D.stops.length-1].id);$('f-stop').classList.add('hid');});
+on('f-act',()=>{D.acts.push({id:uid(),n:$('ac-n').value.trim(),s:$('ac-s').value,a:$('ac-a').value,
+  p:$('ac-p').value,t:draft.acts.t.slice(),k:$('ac-k').checked,o:$('ac-o').value.trim()});
+  ['ac-n','ac-a','ac-p','ac-o'].forEach(i=>$(i).value='');draft.acts={t:[]};});
+on('f-ev',()=>{D.events.push({id:uid(),n:$('ev-n').value.trim(),p:$('ev-p').value.trim(),s:$('ev-s').value,
+  d:$('ev-d').value,e:$('ev-e').value,t:draft.events.t.slice(),i:$('ev-i').checked});
+  ['ev-n','ev-p','ev-d','ev-e'].forEach(i=>$(i).value='');$('ev-i').checked=false;draft.events={t:[]};});
+on('f-resa',()=>{D.resas.custom.push({id:uid(),n:$('rs-n').value.trim(),d:$('rs-d').value,s:$('rs-s').value});
+  $('rs-n').value='';$('rs-d').value='';});
+on('f-dep',()=>{D.budget.items.push({id:uid(),n:$('dp-n').value.trim(),m:+$('dp-m').value,c:$('dp-c').value,
+  p:$('dp-p').value,s:$('dp-s').value,d:$('dp-d').value||today()});$('dp-n').value='';$('dp-m').value='';});
+on('f-rate',()=>{const c=$('rt-c').value.trim().toUpperCase(),v=+$('rt-v').value;
+  if(c&&v>0){D.budget.rates[c]=v;D.budget.ratesDate=today();D.budget.ratesSrc='saisie manuelle';}
+  $('rt-c').value='';$('rt-v').value='';});
+on('f-jrn',()=>{D.journal.push({id:uid(),d:$('jr-d').value||today(),s:$('jr-s').value,t:$('jr-t').value.trim()});$('jr-t').value='';});
+on('f-veh',()=>{D.vehicle={l:+$('vh-l').value||0,h:+$('vh-h').value||0,w:+$('vh-w').value||0,p:+$('vh-p').value||0};});
+on('f-fuel',()=>{D.fuel.push({id:uid(),d:$('fu-d').value||today(),k:+$('fu-k').value,l:+$('fu-l').value,
+  p:+$('fu-p').value||0,f:$('fu-f').checked});['fu-k','fu-l','fu-p'].forEach(i=>$(i).value='');});
+on('f-mnt',()=>{D.maint.push({id:uid(),n:$('mn-n').value.trim(),d:$('mn-d').value||today(),
+  k:+$('mn-k').value||0,x:+$('mn-x').value||0});['mn-n','mn-k','mn-x'].forEach(i=>$(i).value='');});
+on('f-ors',()=>{D.settings.orsKey=$('ors-key').value.trim();computeRoutes();});
+on('f-flag',()=>{const v=$('fl-n').value.trim();if(v&&!D.flags.list.includes(v))D.flags.list.push(v);$('fl-n').value='';});
+on('f-meta',()=>{D.trip=$('mt-n').value.trim();D.ref=($('mt-c').value.trim().toUpperCase())||'EUR';D.budget.rates[D.ref]=1;});
+
+document.addEventListener('click',e=>{
+  const t=e.target;
+  const arr={stops:()=>D.stops,acts:()=>D.acts,events:()=>D.events,resas:()=>D.resas.custom,
+             jrn:()=>D.journal,fuel:()=>D.fuel,mnt:()=>D.maint,deps:()=>D.budget.items};
+  const rm=t.dataset.rm,up=t.dataset.up,dn=t.dataset.dn;
+  if(rm){const[k,id]=rm.split(':');const a=arr[k]();const i=a.findIndex(x=>x.id===id);
+    if(i>=0){a.splice(i,1);if(k==='resas')delete D.resas.checked[id];if(k==='stops')view=null;}draw();return;}
+  if(up||dn){const[k,id]=(up||dn).split(':');const a=arr[k]();const i=a.findIndex(x=>x.id===id),j=i+(up?-1:1);
+    if(i>=0&&j>=0&&j<a.length)[a[i],a[j]]=[a[j],a[i]];draw();return;}
+  const sh=t.closest&&t.closest('[data-so]');
+  if(sh){const id=sh.dataset.so;openStops.has(id)?openStops.delete(id):openStops.add(id);drawStops();return;}
+  if(t.id==='st-new'){$('f-stop').classList.toggle('hid');drawStops();
+    if(!$('f-stop').classList.contains('hid'))$('st-n').focus();return;}
+  if(t.id==='st-exp'){
+    if(openStops.size<D.stops.length)D.stops.forEach(s=>openStops.add(s.id));else openStops.clear();
+    drawStops();return;}
+  if(t.dataset.mon!==undefined){const m=+t.dataset.mon,s=draft.stops.m,i=s.indexOf(m);
+    i<0?s.push(m):s.splice(i,1);s.sort((a,b)=>a-b);refreshDrafts();return;}
+  if(t.dataset.tg){const[sc,id]=t.dataset.tg.split(':'),a=draft[sc].t,i=a.indexOf(id);
+    i<0?a.push(id):a.splice(i,1);refreshDrafts();return;}
+  if(t.dataset.af!==undefined){acFilter=t.dataset.af;drawActs();return;}
+  if(t.dataset.bv){buView=t.dataset.bv;drawBudget();return;}
+  if(t.dataset.flx!==undefined){const i=+t.dataset.flx,f=D.flags.list[i];
+    D.flags.list.splice(i,1);delete D.flags.on[f];draw();return;}
+  if(t.dataset.pok){applyProp(t.dataset.pok,true);return;}
+  if(t.dataset.pno){applyProp(t.dataset.pno,false);return;}
+  if(t.id==='sy-pall'){D.inbox=[];draw();return;}
+  if(t.id==='ors-clr'){D.routes={};draw();orsMsg('Cache vidé.',1);return;}
+  if(t.dataset.rmrate){delete D.budget.rates[t.dataset.rmrate];draw();return;}
+  const chip=t.closest('[data-fl]');
+  if(chip){const f=chip.dataset.fl;D.flags.on[f]=!D.flags.on[f];draw();return;}
+});
+document.addEventListener('change',e=>{
+  if(e.target.dataset.ck){D.resas.checked[e.target.dataset.ck]=e.target.checked;draw();return;}
+  if(e.target.dataset.segk){const k=e.target.dataset.segk,f=e.target.dataset.f;
+    const o=D.manual[k]||{};o[f]=+e.target.value||0;
+    if(!(+o.km>0)&&!(+o.min>0))delete D.manual[k];else D.manual[k]=o;
+    save();setTimeout(()=>{drawMap();drawSegs()},0);return;}
+  if(e.target.dataset.prevs!==undefined&&e.target.hasAttribute&&e.target.hasAttribute('data-prevs')){
+    D.budget.prevStop[e.target.dataset.prevs]=+e.target.value||0;draw();}
+});
+
+/* ============ actualisation ============ */
+const APP_VER='3.3.0 · 4 novembre 2026';
+function syncMsg(k,t,ok){const el=$('sy-'+k+'-st');if(!el)return;
+  el.innerHTML=ok===null?esc(t):`<span class="${ok?'ok':'ko'}">${esc(t)}</span>`;}
+function fetchJSON(url,ms){
+  return new Promise((res,rej)=>{
+    let done=false;
+    const to=setTimeout(()=>{if(!done){done=true;rej(new Error('délai dépassé'))}},ms||10000);
+    fetch(url).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status)))
+      .then(j=>{if(done)return;done=true;clearTimeout(to);res(j)})
+      .catch(e=>{if(done)return;done=true;clearTimeout(to);rej(e)});
+  });
+}
+/* les taux stockés valent : 1 unité de la devise = X en devise de référence */
+function applyRates(r,date,srcName,list){
+  const chg=[],miss=[];
+  list.forEach(c=>{
+    const v=+r[c];
+    if(!isFinite(v)||v<=0){miss.push(c);return}
+    const nv=1/v,old=+D.budget.rates[c];
+    const fx=x=>x>=1?nf(x):x.toPrecision(4).replace('.',',');
+    if(!old||Math.abs(nv-old)/old>0.0005)chg.push(`${c} ${fx(old)} → ${fx(nv)}`);
+    D.budget.rates[c]=Math.round(nv*1e6)/1e6;
+  });
+  D.budget.ratesDate=date||today();D.budget.ratesSrc=srcName;
+  save();draw();
+  syncMsg('rates',(chg.length?chg.join(' · '):'Aucun changement')
+    +(miss.length?` · non trouvées : ${miss.join(', ')}`:'')+` · ${srcName}`,1);
+}
+function refreshRates(){
+  const ref=D.ref||'EUR';
+  const list=Object.keys(D.budget.rates).filter(c=>c!==ref);
+  if(!list.length)return syncMsg('rates',"Aucune devise à actualiser : ajoute-les dans l'onglet Budget.",0);
+  syncMsg('rates','Interrogation de la Banque centrale européenne…',null);
+  return fetchJSON(`https://api.frankfurter.dev/v1/latest?base=${ref}&symbols=${list.join(',')}`)
+    .then(j=>{if(!j||!j.rates)throw new Error('réponse inattendue');applyRates(j.rates,j.date,'BCE (Frankfurter)',list)})
+    .catch(()=>{
+      syncMsg('rates','BCE indisponible, essai d\'une autre source…',null);
+      return fetchJSON(`https://open.er-api.com/v6/latest/${ref}`)
+        .then(j=>{if(!j||!j.rates)throw new Error('réponse inattendue');
+          applyRates(j.rates,(j.time_last_update_utc||'').slice(5,16),'ExchangeRate-API',list)});
+    })
+    .catch(e=>syncMsg('rates','Échec : '+esc(e.message)+'. Les taux en place sont conservés.',0));
+}
+function refreshRoads(all){
+  if(all)D.routes={};
+  const P=pts();
+  if(P.length<2)return syncMsg('road','Il faut au moins deux étapes géolocalisées.',0);
+  if(!(D.settings.orsKey||'').trim())return syncMsg('road',"Colle ta clé OpenRouteService dans l'onglet Carte.",0);
+  D.settings.roadDate=today();
+  syncMsg('road','Calcul lancé — suis l\'avancement dans l\'onglet Carte.',null);
+  computeRoutes();
+}
+function mergeEvents(arr){
+  const key=e=>(e.n||'').toLowerCase().trim()+'|'+(e.d||'');
+  const have=new Set(D.events.map(key));
+  let add=0,skip=0;
+  arr.forEach(e=>{
+    if(!e||!e.n)return;
+    const o={id:uid(),n:String(e.n),p:e.p?String(e.p):'',s:e.s||'',
+      d:e.d||'',e:e.e||e.d||'',t:Array.isArray(e.t)?e.t:[],i:!!e.i};
+    if(have.has(key(o))){skip++;return}
+    have.add(key(o));D.events.push(o);add++;
+  });
+  return{add,skip};
+}
+function askText(){
+  const P=D.stops.map((s,i)=>`${i+1}. ${s.n}${s.c?' ('+s.c+')':''}${s.d?' — '+df(s.d):''}`);
+  return `Peux-tu me préparer un lot d'événements à jour pour ce voyage, au format JSON importable dans le carnet `
+   +`({"app":"les4a-events","v":1,"events":[{"n","p","d","e","t","i"}]}) ?\n\n`
+   +`Voyage : ${D.trip||'(sans nom)'}\nVéhicule : ${[D.vehicle.l&&D.vehicle.l+' m',D.vehicle.h&&D.vehicle.h+' m',D.vehicle.p&&D.vehicle.p+' t'].filter(Boolean).join(' · ')||'non renseigné'}\n`
+   +`Étapes :\n${P.join('\n')||'(aucune)'}\n\n`
+   +`Centres d'intérêt : ${TAGS.map(t=>t[1]).join(', ')}.\n`
+   +`Merci de vérifier les dates de l'année concernée, et d'inclure ce qui vaut le détour pour deux filles de 11 et 15 ans.`;
+}
+/* ---- rapport ---- */
+function logSync(lines){D.lastSync={date:new Date().toISOString(),lines:lines.slice()};save();drawSync()}
+function addLine(t,warn){SYNC_LINES.push({t,w:!!warn})}
+let SYNC_LINES=[],SYNC_BUSY=false;
+
+/* ---- contrôles de cohérence ---- */
+function audit(){
+  const out=[];
+  D.stops.forEach((s,i)=>{
+    const f=fitCheck(s);if(f.length)out.push({t:`Étape ${i+1} · ${s.n} : ${f.join(', ')}`,w:1});
+    const se=seasonCheck(s);if(se)out.push({t:`Étape ${i+1} · ${s.n} : ${se}`,w:1});
+    if(!(isFinite(+s.la)&&(+s.la||+s.lo)))out.push({t:`Étape ${i+1} · ${s.n} : pas de coordonnées, absente de la carte`,w:1});
+  });
+  D.events.filter(e=>e.i&&e.d).forEach(e=>{
+    const hit=D.stops.some(s=>s.d&&s.d>=e.d&&s.d<=(e.e||e.d));
+    if(!hit)out.push({t:`Événement incontournable « ${e.n} » : aucune étape sur ses dates`,w:1});
+  });
+  D.resas.custom.filter(r=>!D.resas.checked[r.id]&&r.d).forEach(r=>{
+    const j=jm(r.d);if(j!==null&&j>=0&&j<=60)out.push({t:`À réserver sous ${j} jours : ${r.n}`,w:1});
+  });
+  const t=totals();
+  if(t.miss)out.push({t:`${t.miss} segment(s) sans distance routière`,w:1});
+  return out;
+}
+/* ---- propositions ---- */
+function propAdd(p){
+  const same=D.inbox.some(x=>x.k===p.k&&x.sig===p.sig);
+  if(same)return false;
+  D.inbox.push(Object.assign({id:uid()},p));return true;
+}
+function buildProps(){
+  let n=0;
+  /* rattacher un événement libre à l'étape dont la date correspond */
+  D.events.filter(e=>!e.s&&e.d).forEach(e=>{
+    const m=D.stops.find(s=>s.d&&s.d>=e.d&&s.d<=(e.e||e.d));
+    if(!m)return;
+    if(propAdd({k:'link',sig:e.id+'>'+m.id,
+      titre:`Rattacher « ${e.n} » à l'étape ${stopIx(m.id)+1} · ${m.n}`,
+      detail:`Les dates coïncident (${df(e.d)}). L'événement apparaîtra sur la fiche de l'étape.`,
+      ev:e.id,st:m.id}))n++;
+  });
+  return n;
+}
+function applyProp(id,yes){
+  const i=D.inbox.findIndex(p=>p.id===id);if(i<0)return;
+  const p=D.inbox[i];
+  if(yes){
+    if(p.k==='link'){const e=D.events.find(x=>x.id===p.ev);if(e)e.s=p.st;}
+    if(p.k==='event'){D.events.push(Object.assign({id:uid()},p.ev));}
+  }
+  D.inbox.splice(i,1);draw();
+}
+function drawInbox(){
+  const el=$('sy-inbox');if(!el)return;
+  if(!D.inbox.length){el.innerHTML='';return}
+  el.innerHTML=`<h3 style="font-size:17px;margin:18px 0 8px">Propositions (${D.inbox.length})</h3>`
+   +D.inbox.map(p=>`<div class="prop"><div class="t">${esc(p.titre)}</div>
+     ${p.detail?`<div class="m">${esc(p.detail)}</div>`:''}
+     <div class="acts"><button data-pok="${p.id}">Ajouter au voyage</button>
+     <button class="no" data-pno="${p.id}">Ignorer</button></div></div>`).join('')
+   +`<button class="go ghost" id="sy-pall" style="width:100%">Tout ignorer</button>`;
+}
+function drawSync(){
+  const r=D.budget.ratesDate;
+  $('sy-rates-when').textContent=r?`Dernière mise à jour : ${df(r)||r}${D.budget.ratesSrc?' · '+D.budget.ratesSrc:''}`
+    :'Jamais actualisés : les taux sont ceux que tu as saisis.';
+  const n=Object.keys(D.routes).length;
+  $('sy-road-when').textContent=n?`${n} segment(s) en mémoire${D.settings.roadDate?' · dernier calcul le '+df(D.settings.roadDate):''}`
+    :'Aucune distance routière calculée.';
+  const ls=D.lastSync||{};
+  $('sy-report').innerHTML=(ls.lines&&ls.lines.length)
+    ?`<div class="rep"><b>Rapport du ${df((ls.date||'').slice(0,10))||'—'}</b><ul>${
+      ls.lines.map(l=>`<li class="${l.w?'w':''}">${esc(l.t)}</li>`).join('')}</ul></div>`
+    :'<p class="note" style="margin:8px 0 0">Aucune actualisation effectuée pour le moment.</p>';
+  drawInbox();
+  $('sy-ver').textContent=`Version ${APP_VER} · ${D.events.length} événement(s) en mémoire`
+    +(NATIVE?' · application Android':(PWA.sw?' · installée, fonctionne hors ligne':' · ouverte comme simple page'));
+}
+
+/* ============ sauvegarde ============ */
+$('sy-rates').addEventListener('click',()=>refreshRates());
+$('sy-road').addEventListener('click',()=>refreshRoads(false));
+$('sy-road-all').addEventListener('click',()=>{if(confirm('Recalculer tous les segments ?'))refreshRoads(true)});
+function runSync(){
+  if(SYNC_BUSY)return;
+  SYNC_BUSY=true;SYNC_LINES=[];
+  $('sy-run').textContent='Actualisation en cours…';
+  const before=JSON.stringify(D.budget.rates);
+  const steps=[];
+  steps.push(refreshRates().then(()=>{
+    const after=JSON.stringify(D.budget.rates);
+    addLine(before===after?'Taux de change : aucun changement'
+      :`Taux de change mis à jour (${D.budget.ratesSrc||'source inconnue'})`);
+  }).catch(()=>addLine('Taux de change : source injoignable, valeurs conservées',1)));
+  const n0=Object.keys(D.routes).length;
+  if((D.settings.orsKey||'').trim()&&pts().length>1){
+    refreshRoads(false);
+    steps.push(new Promise(r=>setTimeout(()=>{
+      const d=Object.keys(D.routes).length-n0;
+      addLine(d>0?`${d} segment(s) routier(s) calculé(s)`:'Distances routières : rien de nouveau');r();},2500)));
+  }else if(pts().length>1)addLine('Distances routières : clé OpenRouteService absente',1);
+  Promise.all(steps).then(()=>{
+    const t=totals();
+    if(t.gps)addLine(`${t.gps} segment(s) validé(s) au GPS, conservés tels quels`);
+    const np=buildProps();
+    addLine(np?`${np} nouvelle(s) proposition(s) à examiner`:'Aucune nouvelle proposition');
+    audit().forEach(a=>SYNC_LINES.push(a));
+    logSync(SYNC_LINES);
+    $('sy-run').textContent='';
+    SYNC_BUSY=false;draw();
+  });
+}
+$('sy-all').addEventListener('click',runSync);
+$('sy-ev').addEventListener('click',()=>$('sy-ev-file').click());
+$('sy-ev-file').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{
+    const o=JSON.parse(rd.result);
+    const arr=Array.isArray(o)?o:(Array.isArray(o.events)?o.events:null);
+    if(!arr)throw new Error("pas d'événements dans ce fichier");
+    const key=e=>(e.n||'').toLowerCase().trim()+'|'+(e.d||'');
+    const have=new Set(D.events.map(key));
+    let add=0,skip=0;
+    arr.forEach(e=>{
+      if(!e||!e.n)return;
+      const o={n:String(e.n),p:e.p?String(e.p):'',s:e.s||'',d:e.d||'',e:e.e||e.d||'',
+        t:Array.isArray(e.t)?e.t:[],i:!!e.i};
+      if(have.has(key(o))){skip++;return}
+      if(propAdd({k:'event',sig:key(o),titre:`Ajouter l'événement « ${o.n} »`,
+        detail:[o.p,o.d?df(o.d)+(o.e&&o.e!==o.d?' → '+df(o.e):''):'',o.i?'marqué incontournable':'']
+          .filter(Boolean).join(' · '),ev:o}))add++;
+    });
+    D.settings.evPack=today();draw();
+    syncMsg('ev',`${add} proposition(s) ajoutée(s)${skip?`, ${skip} déjà dans ton voyage`:''}. À valider ci-dessus.`,1);
+  }catch(err){syncMsg('ev','Import impossible : '+esc(err.message),0)}e.target.value='';};
+  rd.onerror=()=>syncMsg('ev','Lecture impossible.',0);
+  rd.readAsText(f);
+});
+$('sy-ev-ask').addEventListener('click',()=>{
+  const t=askText();
+  const done=()=>syncMsg('ev','Demande copiée : colle-la dans une conversation avec Claude.',1);
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(done).catch(()=>fallback());
+  else fallback();
+  function fallback(){
+    const b=new Blob([t],{type:'text/plain'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);a.download='demande-evenements.txt';a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    syncMsg('ev','Copie refusée par le navigateur : la demande a été téléchargée en fichier texte.',1);
+  }
+});
+$('b-exp').addEventListener('click',()=>{
+  const b=new Blob([JSON.stringify(D,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='carnet_'+(D.trip?D.trip.replace(/[^\w-]+/g,'-').toLowerCase()+'_':'')+today()+'.json';
+  a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);msg('Sauvegarde exportée.',1);});
+$('b-imp').addEventListener('click',()=>$('b-file').click());
+$('b-file').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);
+    if(typeof o!=='object'||o===null)throw new Error('contenu inattendu');
+    D=merge(o);view=null;draw();msg('Sauvegarde importée.',1);
+  }catch(err){msg('Import impossible : '+err.message,0);}e.target.value='';};
+  r.onerror=()=>msg('Lecture impossible.',0);r.readAsText(f);});
+$('b-print').addEventListener('click',()=>{
+  if(location.search.indexOf('native=1')>=0)
+    return msg("Impression indisponible dans l'app Android : exporte la sauvegarde, ou ouvre le carnet dans Chrome pour imprimer.",0);
+  try{window.print()}catch(e){msg('Impression refusée par le navigateur.',0)}
+});
+$('b-raz').addEventListener('click',()=>{if(!confirm('Tout effacer ? Définitif.'))return;
+  D=JSON.parse(JSON.stringify(BLANK));view=null;draw();msg('Carnet remis à zéro.',1);});
+function msg(t,ok){$('save-msg').innerHTML=`<span class="${ok?'ok':'ko'}">${esc(t)}</span>`;
+  setTimeout(()=>{$('save-msg').textContent=''},4000);}
+
+/* ============ installation et mises à jour ============ */
+const PWA={sw:false,reg:null,prompt:null};
+function appMsg(t,ok){const el=$('sy-app-st');if(!el)return;
+  el.innerHTML=ok===null?esc(t):`<span class="${ok?'ok':'ko'}">${esc(t)}</span>`;}
+function showUpd(){const b=$('upd');if(b)b.classList.add('on')}
+
+const NATIVE=location.search.indexOf('native=1')>=0;
+if('serviceWorker' in navigator && location.protocol!=='file:' && !NATIVE){
+  navigator.serviceWorker.register('sw.js',{scope:'./',updateViaCache:'none'}).then(reg=>{
+    PWA.sw=true;PWA.reg=reg;
+    if(reg.waiting)showUpd();
+    reg.addEventListener('updatefound',()=>{
+      const w=reg.installing;if(!w)return;
+      w.addEventListener('statechange',()=>{
+        if(w.state==='installed'&&navigator.serviceWorker.controller)showUpd();
+      });
+    });
+    try{drawSync()}catch(e){}
+  }).catch(()=>{PWA.sw=false});
+  let reloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(reloading)return;reloading=true;location.reload();
+  });
+}
+const updBtn=$('upd-go');
+if(updBtn)updBtn.addEventListener('click',()=>{
+  const w=PWA.reg&&PWA.reg.waiting;
+  if(w)w.postMessage('skip-waiting');else location.reload();
+});
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();PWA.prompt=e;
+  const b=$('sy-install');if(b)b.style.display='block';
+});
+window.addEventListener('appinstalled',()=>{
+  const b=$('sy-install');if(b)b.style.display='none';
+  appMsg('Application installée. Retrouve-la dans ton tiroir d\'applications.',1);
+});
+const insBtn=$('sy-install');
+if(insBtn)insBtn.addEventListener('click',()=>{
+  if(!PWA.prompt)return appMsg("Ton navigateur n'a pas proposé l'installation : menu ⋮ puis « Installer l'application ».",0);
+  PWA.prompt.prompt();
+  PWA.prompt.userChoice.then(r=>{
+    appMsg(r.outcome==='accepted'?'Installation lancée.':'Installation annulée.',r.outcome==='accepted');
+    PWA.prompt=null;
+  }).catch(()=>{});
+});
+const updChk=$('sy-upd');
+if(updChk)updChk.addEventListener('click',()=>{
+  if(!PWA.reg)return appMsg("Pas de version installée à mettre à jour : ouvre l'app depuis son adresse web.",0);
+  appMsg('Recherche…',null);
+  let found=false;
+  const onFound=()=>{found=true};
+  PWA.reg.addEventListener('updatefound',onFound);
+  const verdict=()=>{
+    PWA.reg.removeEventListener('updatefound',onFound);
+    const neuf=!!(PWA.reg.waiting||PWA.reg.installing||found);
+    if(PWA.reg.waiting)showUpd();
+    appMsg(neuf?'Nouvelle version prête : touche « Mettre à jour » en bas de l\'écran.'
+                :'Tu es déjà à jour.',1);
+  };
+  PWA.reg.update()
+    .then(()=>{
+      let n=0;
+      const tick=setInterval(()=>{
+        n++;
+        if(PWA.reg.waiting||found||n>=6){clearInterval(tick);verdict()}
+      },500);
+    })
+    .catch(e=>{PWA.reg.removeEventListener('updatefound',onFound);
+      appMsg('Vérification impossible : '+esc(e.message),0)});
+});
+
+/* ============ init ============ */
+load();
+$('jr-d').value=today();$('fu-d').value=today();$('mn-d').value=today();
+draw();
+</script>
+</body>
+</html>
