@@ -176,8 +176,12 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
   <div class="mapctl" id="map-ctl"></div>
   <div id="map-legend"></div>
   <form class="add" id="f-ors" style="margin-top:12px">
-    <div class="f"><label class="w">Clé OpenRouteService (gratuite, openrouteservice.org)
-      <input id="ors-key" type="password" placeholder="collée une seule fois, stockée sur l'appareil"></label></div>
+    <p class="note" style="margin:0 0 8px">Sans rien régler, les kilomètres sont calculés en <b>profil voiture</b>
+      (OSRM, gratuit, sans compte) : aucun segment ne reste à vol d'oiseau. Une clé OpenRouteService, facultative,
+      bascule le calcul en <b>profil poids lourd</b> avec ton gabarit, et retombe sur la voiture si un trajet échoue.
+      Dans tous les cas, un kilométrage saisi au GPS ci-dessous prime sur le calcul.</p>
+    <div class="f"><label class="w">Clé OpenRouteService — facultative (gratuite, openrouteservice.org)
+      <input id="ors-key" type="password" placeholder="laisse vide pour le profil voiture"></label></div>
     <div class="f" style="gap:9px">
       <button class="go" type="submit" style="flex:1 1 auto">Calculer les distances routières</button>
       <button class="go ghost" type="button" id="ors-clr" style="flex:0 0 auto">Vider le cache</button>
@@ -582,27 +586,44 @@ function orsSegment(a,b,key){
      return{km:(s.distance||0)/1000,min:Math.round((s.duration||0)/60),geom};
    }));
 }
+function osrmSegment(a,b){
+  const u=`https://router.project-osrm.org/route/v1/driving/${+a.lo},${+a.la};${+b.lo},${+b.la}`
+         +`?overview=full&geometries=geojson`;
+  return fetch(u).then(res=>res.json().then(j=>{
+    if(!res.ok||j.code!=='Ok')throw new Error((j&&j.message)||('HTTP '+res.status));
+    const rt=j.routes&&j.routes[0];
+    if(!rt)throw new Error('aucun itinéraire');
+    const c=rt.geometry.coordinates;
+    const step=Math.max(1,Math.ceil(c.length/150));
+    const geom=c.filter((_,i)=>i%step===0||i===c.length-1).map(q=>[q[1],q[0]]);
+    return{km:(rt.distance||0)/1000,min:Math.round((rt.duration||0)/60),geom,mode:'voiture'};
+  }));
+}
 function computeRoutes(){
   const key=(D.settings.orsKey||'').trim();
   const P=pts();
-  if(!key)return orsMsg('Colle ta clé OpenRouteService au-dessus.',0);
   if(P.length<2)return orsMsg('Il faut au moins deux étapes géolocalisées.',0);
   const todo=[];
   for(let i=1;i<P.length;i++)if(!segData(P[i-1],P[i]))todo.push([P[i-1],P[i]]);
   if(!todo.length)return orsMsg('Tous les segments sont déjà calculés.',1);
-  let done=0,fail=0;
+  let done=0,fail=0,voit=0;
   orsMsg(`Calcul en cours… 0/${todo.length}`,null);
   const next=()=>{
     if(!todo.length){
       const t=totals();
-      orsMsg(`${done} segment(s) calculé(s)${fail?`, ${fail} en échec`:''} · ${nf(t.road)} km de route`,fail?0:1);
+      orsMsg(`${done} segment(s) calculé(s)${voit?`, dont ${voit} en profil voiture`:''}`
+        +`${fail?`, ${fail} en échec`:''} · ${nf(t.road)} km de route`,fail?0:1);
       draw();return;}
     const[a,b]=todo.shift();
-    orsSegment(a,b,key)
-      .then(r=>{D.routes[segKey(a,b)]=r;done++;})
+    const essai = key
+      ? orsSegment(a,b,key).then(r=>Object.assign(r,{mode:'poids-lourd'}))
+                           .catch(()=>osrmSegment(a,b))
+      : osrmSegment(a,b);
+    essai
+      .then(r=>{D.routes[segKey(a,b)]=r;done++;if(r.mode==='voiture')voit++;})
       .catch(e=>{fail++;orsMsg(`${esc(a.n)} → ${esc(b.n)} : ${esc(e.message)}`,0);})
       .then(()=>{orsMsg(`Calcul en cours… ${done+fail}/${done+fail+todo.length}`,null);
-        save();setTimeout(next,1600);});
+        save();setTimeout(next,key?1600:260);});
   };
   next();
 }
@@ -738,7 +759,9 @@ function drawSegs(){
     $('segs-st').textContent='';return;}
   $('l-segs').innerHTML=segs.map(s=>{
     const k=segKey(s.from,s.to),m=D.manual[k]||{};
-    const auto=s.src==='ors'?`auto : ${nf(s.km)} km`:(s.src==='vol'?`à vol d'oiseau : ${nf(s.km)} km`:'');
+    const d0=D.routes[k]||{};
+    const prof=d0.mode==='voiture'?' · profil voiture':(d0.mode==='poids-lourd'?' · profil poids lourd':'');
+    const auto=s.src==='ors'?`auto : ${nf(s.km)} km${prof}`:(s.src==='vol'?`à vol d'oiseau : ${nf(s.km)} km`:'');
     return `<tr><td>${esc(s.from.n)} → ${esc(s.to.n)}
       ${auto&&!(+m.km>0)?`<span class="s" style="display:block;font-size:12px;color:var(--gris)">${auto}</span>`:''}
       ${+m.km>0?'<span class="badge b-fr">GPS</span>':''}</td>
