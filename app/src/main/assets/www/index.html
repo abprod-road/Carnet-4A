@@ -387,7 +387,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 
   <h3 style="font-size:17px;margin:22px 0 4px">Événements</h3>
   <p class="note" style="margin:0 0 8px">Le carnet ne connaît pas les dates des festivals et des courses : elles changent chaque année. Importe un lot d'événements, ou copie la demande ci-dessous et envoie-la-moi pour que je t'en prépare un à jour.</p>
-  <button class="go ghost" id="sy-ev">Importer un lot d'événements</button>
+  <button class="go ghost" id="sy-ev">Importer un lot d'événements ou de lieux</button>
   <input type="file" id="sy-ev-file" accept=".json,application/json" hidden>
   <button class="go ghost" id="sy-ev-ask" style="margin-top:8px">Copier la demande à m'envoyer</button>
   <p class="note" id="sy-ev-st"></p>
@@ -1227,6 +1227,7 @@ function applyProp(id,yes){
   if(yes){
     if(p.k==='link'){const e=D.events.find(x=>x.id===p.ev);if(e)e.s=p.st;}
     if(p.k==='event'){D.events.push(Object.assign({id:uid()},p.ev));}
+    if(p.k==='act'){D.acts.push(Object.assign({id:uid()},p.ac));}
   }
   D.inbox.splice(i,1);draw();
 }
@@ -1296,8 +1297,9 @@ $('sy-ev-file').addEventListener('change',e=>{
   const f=e.target.files[0];if(!f)return;const rd=new FileReader();
   rd.onload=()=>{try{
     const o=JSON.parse(rd.result);
-    const arr=Array.isArray(o)?o:(Array.isArray(o.events)?o.events:null);
-    if(!arr)throw new Error("pas d'événements dans ce fichier");
+    const arr=Array.isArray(o)?o:(Array.isArray(o.events)?o.events:[]);
+    const arrA=Array.isArray(o.acts)?o.acts:[];
+    if(!arr.length&&!arrA.length)throw new Error("ni événements ni lieux dans ce fichier");
     const key=e=>(e.n||'').toLowerCase().trim()+'|'+(e.d||'');
     const have=new Set(D.events.map(key));
     let add=0,skip=0;
@@ -1309,6 +1311,19 @@ $('sy-ev-file').addEventListener('change',e=>{
       if(propAdd({k:'event',sig:key(o),titre:`Ajouter l'événement « ${o.n} »`,
         detail:[o.p,o.d?df(o.d)+(o.e&&o.e!==o.d?' → '+df(o.e):''):'',o.i?'marqué incontournable':'']
           .filter(Boolean).join(' · '),ev:o}))add++;
+    });
+    /* lieux et activites proposes */
+    const keyA=a=>(a.n||'').toLowerCase().trim()+'|'+(a.s||'');
+    const haveA=new Set(D.acts.map(keyA));
+    arrA.forEach(a=>{
+      if(!a||!a.n)return;
+      const st=D.stops.find(x=>x.id===a.s);
+      const o2={n:String(a.n),s:st?a.s:'',a:a.a||'',p:a.p||'',
+        t:Array.isArray(a.t)?a.t:[],k:!!a.k,o:a.o?String(a.o):''};
+      if(haveA.has(keyA(o2))){skip++;return}
+      if(propAdd({k:'act',sig:keyA(o2),titre:`Ajouter le lieu « ${o2.n} »`,
+        detail:[st?`étape ${stopIx(st.id)+1} · ${st.n}`:'non rattaché',
+                o2.k?'pour les filles':'',o2.o].filter(Boolean).join(' · '),ac:o2}))add++;
     });
     D.settings.evPack=today();draw();
     syncMsg('ev',`${add} proposition(s) ajoutée(s)${skip?`, ${skip} déjà dans ton voyage`:''}. À valider ci-dessus.`,1);
