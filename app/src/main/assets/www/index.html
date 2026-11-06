@@ -235,7 +235,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
     <div class="note" id="ors-st"></div>
   </form>
   <h3 style="font-size:17px;margin:22px 0 4px">Distances validées au GPS</h3>
-  <p class="note" style="margin:0 0 8px">Trajet lancé dans Eurowag Navi (ou ton GPS poids lourd) : recopie ici les kilomètres et la durée. Ces valeurs priment sur tout calcul automatique.</p>
+  <p class="note" style="margin:0 0 8px">Trajet lancé dans ton GPS poids lourd : recopie ici les kilomètres et la durée. Ces valeurs priment sur tout calcul automatique.</p>
   <table><thead><tr><th>Segment</th><th class="num">km</th><th class="num">min</th></tr></thead><tbody id="l-segs"></tbody></table>
   <p class="note" id="segs-st"></p>
 </section>
@@ -1214,7 +1214,7 @@ function drawStops(){
       </div>
       <div class="st-b">
         ${s.o?`<h4>Ce qui est prévu</h4><div class="n" style="margin-top:0">${esc(s.o)}</div>`:''}
-        ${A.length?`<h4>Activités</h4>`+A.map(a=>`<div class="lnk"><b>${esc(a.n)}</b>${a.k?'<span class="badge b-done">filles</span>':''}
+        ${A.length?`<h4>Activités</h4>`+A.map(a=>`<div class="lnk"><b>${esc(a.n)}</b>${a.k?'<span class="badge b-done">enfants</span>':''}
           <span class="s">${[a.a?'dès '+a.a+' ans':'',a.p?nf(a.p)+' '+D.ref:'',
             (a.t||[]).map(x=>tagName(x)).join(', ')].filter(Boolean).join(' · ')}</span>
           ${a.o?`<span class="s">${esc(a.o)}</span>`:''}</div>`).join(''):''}
@@ -1246,7 +1246,7 @@ function drawActs(){
   $('l-acts').innerHTML=L.length?L.map(a=>{
     return `<div class="card"><div class="row"><div>
       <div style="margin-bottom:4px">${stopBadge(a.s,'non rattachée')}</div>
-      <div class="t">${esc(a.n)}${a.k?'<span class="badge b-done">filles</span>':''}</div>
+      <div class="t">${esc(a.n)}${a.k?'<span class="badge b-done">enfants</span>':''}</div>
       <div class="m">${[a.a?'dès '+a.a+' ans':'',a.p?nf(a.p)+' '+D.ref:''].filter(Boolean).join(' · ')||'—'}</div>
       ${tagList(a.t)}${a.o?`<div class="n">${esc(a.o)}</div>`:''}
     </div>${tools('acts',a.id)}</div></div>`}).join('')
@@ -1553,7 +1553,7 @@ function askText(){
    +`Voyage : ${D.trip||'(sans nom)'}\nVéhicule : ${[D.vehicle.l&&D.vehicle.l+' m',D.vehicle.h&&D.vehicle.h+' m',D.vehicle.p&&D.vehicle.p+' t'].filter(Boolean).join(' · ')||'non renseigné'}\n`
    +`Étapes :\n${P.join('\n')||'(aucune)'}\n\n`
    +`Centres d'intérêt : ${TAGS.map(t=>t[1]).join(', ')}.\n`
-   +`Merci de vérifier les dates de l'année concernée, et d'inclure ce qui vaut le détour pour deux filles de 11 et 15 ans.`;
+   +`Merci de vérifier les dates de l'année concernée, et de signaler ce qui vaut le détour avec des enfants.`;
 }
 /* ---- rapport ---- */
 function logSync(lines){D.lastSync={date:new Date().toISOString(),lines:lines.slice()};save();drawSync()}
