@@ -127,7 +127,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .note{font-size:12.5px;color:var(--gris);margin-top:12px}
 .ok{color:var(--vert);font-weight:600}.ko{color:var(--rouge);font-weight:600}
 #map{height:340px;border:1px solid var(--trait);border-radius:7px;background:#DDE6EA;margin-bottom:12px}
-#map svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#map > svg{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
 .leaflet-container{height:100%;border-radius:6px}
 .mk{background:var(--nuit);color:#fff;border-radius:50%;width:22px;height:22px;line-height:22px;
  text-align:center;font-size:11px;font-weight:700;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
@@ -671,14 +671,18 @@ function drawLeaflet(P){
   const ll=P.map(p=>[+p.la,+p.lo]);
   buildPath().segs.forEach(s=>{
     const col=SEASON_COL[seasonOf(s.to)];
-    window.L.polyline(s.pts,{color:'#fff',weight:s.road?6:4,opacity:.72}).addTo(lgrp);
-    window.L.polyline(s.pts,{color:col,weight:s.road?4:2.5,
-      dashArray:s.road?null:'7 5'}).addTo(lgrp);
+    window.L.polyline(s.pts,{color:'#fff',weight:s.road?8:6,opacity:.85}).addTo(lgrp);
+    window.L.polyline(s.pts,{color:col,weight:s.road?5:3.5,opacity:1,
+      dashArray:s.road?null:'9 6'}).addTo(lgrp)
+      .bindTooltip(`${esc(s.from.n)} → ${esc(s.to.n)}<br><b>${nf(s.km)} km</b>`,{sticky:true});
   });
   P.forEach((p,i)=>window.L.marker([+p.la,+p.lo],{icon:window.L.divIcon({className:'',
     html:`<div class="mk${p.fr?' fr':''}" style="background:${SEASON_COL[seasonOf(p)]}">${i+1}</div>`,
     iconSize:[22,22],iconAnchor:[11,11]})})
-    .addTo(lgrp).bindPopup(`<b>${esc(p.n)}</b>${p.c?'<br>'+esc(p.c):''}${p.d?'<br>'+df(p.d):''}`));
+    .addTo(lgrp).bindPopup(
+      `<b>${esc(p.n)}</b>${p.c?'<br>'+esc(p.c):''}${p.d?'<br>'+df(p.d):''}`
+      +`<br><a href="#" data-go="${esc(p.id)}" style="display:inline-block;margin-top:7px;`
+      +`font-weight:700;color:#1c4f8a;text-decoration:none">Voir l'étape ▸</a>`));
   lmk=window.L.marker(ll[0],{icon:window.L.divIcon({className:'',html:'<div class="tk">🚚</div>',
     iconSize:[26,26],iconAnchor:[13,13]}),zIndexOffset:1000}).addTo(lgrp);
   if(first||view===null){lmap.fitBounds(ll,{padding:[30,30]});view='lf'}
@@ -840,6 +844,23 @@ function seasonCheck(s){
   return s.m.includes(mo)?null:`arrivée en ${MONSL[mo]}, hors des mois favorables (${s.m.map(i=>MONSL[i]).join(', ')})`;}
 
 const openStops=new Set();
+function goStop(id){
+  const st=D.stops.find(x=>x.id===id); if(!st)return;
+  openStops.add(id);
+  if(tab==='map')stopAnim();
+  tab='stops'; draw();
+  setTimeout(()=>{
+    const el=document.querySelector(`[data-stop="${id}"]`);
+    if(el){el.scrollIntoView({behavior:'smooth',block:'start'});
+      el.style.transition='box-shadow .5s';
+      el.style.boxShadow='0 0 0 3px var(--soleil)';
+      setTimeout(()=>{el.style.boxShadow=''},1400);}
+  },90);
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-go]'); if(!a)return;
+  e.preventDefault(); goStop(a.dataset.go);
+});
 function evForStop(s){
   return D.events.filter(e=>e.s===s.id||(!e.s&&s.d&&e.d&&s.d>=e.d&&s.d<=(e.e||e.d)));
 }
@@ -867,7 +888,7 @@ function drawStops(){
                E.length&&E.length+' événement'+(E.length>1?'s':''),
                R.length&&R.length+' réservation'+(R.length>1?'s':''),
                J.length&&J.length+' note'+(J.length>1?'s':'')].filter(Boolean).join(' · ');
-    return `<div class="card stop${open?' open':''}">
+    return `<div class="card stop${open?' open':''}" data-stop="${esc(s.id)}">
       ${fit.length?`<div class="warn" style="margin:11px 12px 0"><b>Gabarit :</b> ${fit.join(' · ')}</div>`:''}
       ${sea?`<div class="warn" style="margin:11px 12px 0"><b>Saison :</b> ${esc(sea)}</div>`:''}
       <div class="st-top">
