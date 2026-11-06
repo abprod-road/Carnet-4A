@@ -1,11 +1,11 @@
 plugins { id "com.android.application" }
 
 android {
-    namespace "com.les4a.carnet"
+    namespace "com.abprod.carnet"
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.les4a.carnet"
+        applicationId "com.abprod.carnet"
         minSdk 24
         targetSdk 34
         versionCode 1
