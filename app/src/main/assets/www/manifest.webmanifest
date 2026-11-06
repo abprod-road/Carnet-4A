@@ -1,10 +1,10 @@
 {
-  "name": "Carnet de bord — Les 4A",
+  "name": "Carnet de bord",
   "short_name": "Carnet",
-  "description": "Le carnet de bord du voyage : étapes, activités, événements, budget et camion.",
+  "description": "Le carnet de bord du voyage : étapes, activités, événements, budget et véhicule.",
   "lang": "fr",
   "dir": "ltr",
-  "id": "/carnet-les4a/",
+  "id": "/carnet-de-bord/",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
