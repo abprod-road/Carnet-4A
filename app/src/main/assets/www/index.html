@@ -512,6 +512,7 @@ function merge(o){const d=JSON.parse(JSON.stringify(BLANK));
   d[k]=(typeof d[k]==='object'&&!Array.isArray(d[k])&&typeof o[k]==='object'&&!Array.isArray(o[k]))
     ?Object.assign(d[k],o[k]):o[k];}}
  if(d.budget&&Array.isArray(d.budget.items))d.budget.items.forEach(x=>{if(x.p==='Camion')x.p='Véhicule'});
+ d.app='carnet';
  return d;}
 function load(){try{let r=localStorage.getItem(LS);if(!r){const o=localStorage.getItem(LS_OLD);if(o){r=o;localStorage.setItem(LS,o);}}if(r)D=merge(JSON.parse(r));}catch(e){}}
 function genWire(){
